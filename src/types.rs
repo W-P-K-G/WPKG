@@ -1,6 +1,8 @@
+mod pool;
+
 use anyhow::anyhow;
 use reqwest::Method;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{globals::JSON_WALLETS_URL, send_api_request};
 
@@ -16,22 +18,6 @@ pub type Wallets = Vec<Wallet>;
 impl Wallet {
     pub fn parse(data: &str) -> serde_json::Result<Wallets> {
         serde_json::from_str(data)
-    }
-
-    pub async fn get() -> anyhow::Result<Wallets> {
-        let res = send_api_request(Method::GET, JSON_WALLETS_URL).await?;
-
-        // get response http code
-        let status = res.status();
-
-        // check if an error has occurred
-        if status.is_client_error() || status.is_server_error() {
-            let body = res.text().await?;
-
-            return Err(anyhow!("Server returned non-successful response: {} (http code: {})", body, status));
-        }
-
-        Ok(res.json().await?)
     }
 }
 
@@ -61,10 +47,5 @@ mod tests {
         ]"#;
 
         Wallet::parse(data).unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_get_from_api() {
-        Wallet::get().await.unwrap();
     }
 }
