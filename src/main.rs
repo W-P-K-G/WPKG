@@ -8,6 +8,7 @@ mod client;
 mod globals;
 mod logger;
 mod macros;
+mod unwrap;
 mod utils;
 
 use std::sync::Mutex;

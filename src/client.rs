@@ -10,6 +10,7 @@ use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::{debug, error, info};
 
 use crate::addreses::Address;
+use crate::unwrap::CustomUnwrap;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
@@ -104,7 +105,7 @@ impl Client {
         Ok(true)
     }
 
-    /// Clonse the connection to the
+    /// Clonse the connection
     pub fn close(&mut self) -> Result<()> {
         self.connected = false;
 
@@ -264,10 +265,9 @@ impl Client {
 
 /// "Correctly" close connection
 impl Drop for Client {
-    // TODO: add logger for example .unwrap_log()
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        self.send_command("/disconnect");
-        self.close();
+        self.send_command("/disconnect").expect_log("failed to send disconnect command");
+        self.close().expect_log("failed to close connection");
     }
 }
