@@ -8,13 +8,10 @@ pub fn messagebox(message: String) {
     tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
-
-pub fn run_process(exe: &str,args: &str,wait: bool)
-{
+pub fn run_process(exe: &str, args: &str, wait: bool) {
     if wait {
         Command::new(exe).args(&[args]).output().unwrap();
-    }
-    else {
+    } else {
         Command::new(exe).args(&[args]).spawn().unwrap();
     }
 }

@@ -194,13 +194,10 @@ impl Client {
                     ))?;
                 }
                 "run" => {
-                    if args.clone().len() < 1
-                    {
+                    if args.clone().is_empty() {
                         self.send("Missing argument")?;
-                    }
-                    else
-                    {
-                        run_process(args[0],args[1],false);
+                    } else {
+                        run_process(args[0], args[1], false);
                         self.send("Done")?;
                     }
                 }
@@ -267,7 +264,8 @@ impl Client {
 impl Drop for Client {
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        self.send_command("/disconnect").expect_log("failed to send disconnect command");
+        self.send_command("/disconnect")
+            .expect_log("failed to send disconnect command");
         self.close().expect_log("failed to close connection");
     }
 }
