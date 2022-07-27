@@ -1,20 +1,36 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use crate::{globals::JSON_ADRESSES_URL, send_api_request};
+use crate::{globals::JSON_ADRESSES_URL, send_api_request, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Adresses {
     #[serde(rename = "tAddresses")]
-    pub tcp: Vec<Adress>,
-    #[serde(rename = "uAddresses")]
-    pub udp: Vec<Adress>,
+    pub tcp: Vec<Address>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Adress {
+pub struct Address {
     pub ip: String,
     pub port: u32,
+}
+
+impl Default for Adresses {
+    fn default() -> Self {
+        Self { tcp: Default::default(), }
+    }
+}
+
+impl Default for Address {
+    fn default() -> Self {
+        Self { ip: TCP_BACKUP_IP.to_string(), port: TCP_BACKUP_PORT }
+    }
+}
+
+impl Address {
+    pub fn format(&self) -> String {
+        format!("{}:{}", self.ip, self.port)
+    }
 }
 
 impl Adresses {
