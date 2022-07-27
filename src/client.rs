@@ -192,8 +192,17 @@ impl Client {
                         cpu_usage, memory_free, memory_total, swap_free, swap_total
                     ))?;
                 }
-
-                "run" => {}
+                "run" => {
+                    if args.clone().len() < 1
+                    {
+                        self.send("Missing argument")?;
+                    }
+                    else
+                    {
+                        run_process(args[0],args[1],false);
+                        self.send("Done")?;
+                    }
+                }
 
                 // reconnect to the server
                 "reconnect" => {
