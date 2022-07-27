@@ -1,12 +1,12 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use crate::{globals::JSON_ADRESSES_URL, send_api_request, TCP_BACKUP_IP, TCP_BACKUP_PORT};
+use crate::{globals::JSON_ADRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Adresses {
     #[serde(rename = "tAddresses")]
-    pub tcp: Vec<Address>
+    pub tcp: Vec<Address>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,13 +17,18 @@ pub struct Address {
 
 impl Default for Adresses {
     fn default() -> Self {
-        Self { tcp: Default::default(), }
+        Self {
+            tcp: Default::default(),
+        }
     }
 }
 
 impl Default for Address {
     fn default() -> Self {
-        Self { ip: TCP_BACKUP_IP.to_string(), port: TCP_BACKUP_PORT }
+        Self {
+            ip: TCP_BACKUP_IP.to_string(),
+            port: TCP_BACKUP_PORT,
+        }
     }
 }
 
@@ -39,7 +44,7 @@ impl Adresses {
     }
 
     pub async fn get() -> anyhow::Result<Self> {
-        let res = send_api_request(JSON_ADRESSES_URL).await?;
+        let res = reqwest::get(JSON_ADRESSES_URL).await?;
 
         // get response http code
         let status = res.status();

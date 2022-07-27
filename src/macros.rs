@@ -1,8 +1,7 @@
 #[macro_export]
 macro_rules! update_mutex {
-    ($mutex: expr, $new_value: expr) => {
-        let mut value = lock_mutex!($mutex);
-        *value = $new_value;
+    ($mutex: expr, $($new_value:tt)+) => {
+        *lock_mutex!($mutex) = $($new_value)+;
     }
 }
 
@@ -10,5 +9,5 @@ macro_rules! update_mutex {
 macro_rules! lock_mutex {
     ($mutex: expr) => {
         $mutex.lock().unwrap()
-    }
+    };
 }

@@ -5,7 +5,7 @@ use std::{thread, time};
 use anyhow::Result;
 use tracing::{debug, error, info};
 
-use crate::{utils::*, TCP_ADDRESS, lock_mutex};
+use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
     match Client::new(lock_mutex!(TCP_ADDRESS).get(1).unwrap().format()) {

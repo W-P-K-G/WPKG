@@ -7,16 +7,14 @@ mod addreses;
 mod client;
 mod globals;
 mod logger;
-mod send_api_request;
-mod utils;
 mod macros;
+mod utils;
 
 use std::sync::Mutex;
 
 use lazy_static::lazy_static;
-pub use send_api_request::*;
 
-use crate::addreses::{Adresses, Address};
+use crate::addreses::{Address, Adresses};
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
