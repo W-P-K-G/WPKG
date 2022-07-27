@@ -22,7 +22,7 @@ pub const TCP_BACKUP_IP: &str = "136.243.156.104";
 pub const TCP_BACKUP_PORT: u32 = 3217;
 
 lazy_static! {
-    pub static ref TCP_ADDRESS: Mutex<Vec<Address>> = Mutex::new(Vec::new());
+    pub static ref TCP_ADDRESS: Mutex<Vec<Address>> = Mutex::new(vec![Address::default()]);
 }
 
 #[tokio::main]

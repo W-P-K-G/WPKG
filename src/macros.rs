@@ -8,6 +8,6 @@ macro_rules! update_mutex {
 #[macro_export]
 macro_rules! lock_mutex {
     ($mutex: expr) => {
-        $mutex.lock().unwrap()
+        $mutex.lock().expect("failed to lock mutex")
     };
 }
