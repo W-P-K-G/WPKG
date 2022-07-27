@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
 
-use tracing::{info, error, debug};
+use tracing::{debug, error, info};
 
 use crate::utils::*;
 
@@ -19,23 +19,20 @@ pub fn connect() {
         }
     }
 }
+
 pub struct Client {
     stream: TcpStream,
     connected: bool,
-}
-
-impl Drop for Client {
-    fn drop(&mut self) {
-        self.send_command("/disconnect");
-        self.close();
-    }
 }
 
 impl Client {
     pub fn new(address: String) -> anyhow::Result<Self> {
         let stream = TcpStream::connect(address)?;
 
-        Ok(Self { stream,connected: true })
+        Ok(Self {
+            stream,
+            connected: true,
+        })
     }
 
     pub fn receive(&mut self) -> String {
@@ -54,24 +51,19 @@ impl Client {
 
     pub fn send(&mut self, message: &str) {
         debug!("[Sended]: {}", message);
-        self.stream.write(message.to_string().as_bytes()).unwrap();
+        self.stream.write_all(message.to_string().as_bytes()).unwrap();
     }
 
-    pub fn send_command(&mut self,message: &str) -> String
-    {
+    pub fn send_command(&mut self, message: &str) -> String {
         self.send(message);
         self.receive()
     }
 
-    pub fn check_args(&mut self,args: Vec<&str>,length: usize) -> bool
-    {
-        if args.len() < length
-        {
+    pub fn check_args(&mut self, args: Vec<&str>, length: usize) -> bool {
+        if args.len() < length {
             self.send("Missing arguments");
             return false;
-        }
-        else if args.len() < length
-        {
+        } else if args.len() < length {
             self.send("To much arguments");
             return false;
         }
@@ -84,36 +76,30 @@ impl Client {
     }
 
     pub fn run(&mut self) {
-
         info!("Client started working");
 
-        self.send_command(format!("/setname {}@{}",whoami::username(),whoami::hostname()).as_str());
+        self.send_command(
+            format!("/setname {}@{}", whoami::username(), whoami::hostname()).as_str(),
+        );
 
         while self.connected {
-
             let message = self.receive();
             let command = message.split_ascii_whitespace().collect::<Vec<&str>>();
             let args = command[1..command.len()].to_vec();
 
             match command[0] {
                 "msg" => {
-                    if self.check_args(args.clone(),1)
-                    {
+                    if self.check_args(args.clone(), 1) {
                         messagebox(String::from(args[0]));
                         self.send("Done");
                     }
                 }
-                "run" => {
-
-                }
-                "reconnect" =>
-                {
-                    if self.check_args(args.clone(),2)
-                    {
-                        match Client::new(format!("{}:{}",args[0],args[1]))
-                        {
+                "run" => {}
+                "reconnect" => {
+                    if self.check_args(args.clone(), 2) {
+                        match Client::new(format!("{}:{}", args[0], args[1])) {
                             Ok(mut client) => {
-                                info!("Reconnected succesfully to {}:{}!",args[0],args[1]);
+                                info!("Reconnected succesfully to {}:{}!", args[0], args[1]);
 
                                 self.send("Succesfully reconnected client... disconnecting...");
                                 self.send_command("/disconnect");
@@ -157,5 +143,14 @@ impl Client {
                 _ => self.send("Unknown command"),
             }
         }
+    }
+}
+
+/// "Correctly" close connection
+impl Drop for Client {
+    fn drop(&mut self) {
+        print!("Shutdown connection");
+        self.send_command("/disconnect");
+        self.close();
     }
 }

@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use reqwest::Method;
 use serde::{Deserialize, Serialize};
 
 use crate::{globals::JSON_ADRESSES_URL, send_api_request};
