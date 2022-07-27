@@ -5,10 +5,11 @@ use std::{thread, time};
 use anyhow::Result;
 use tracing::{debug, error, info};
 
+use crate::addreses::Address;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
-    match Client::new(lock_mutex!(TCP_ADDRESS).get(1).unwrap().format()) {
+    match Client::new(lock_mutex!(TCP_ADDRESS).get(0).unwrap_or(&Address::default()).format()) {
         Ok(mut client) => {
             info!("Connected!");
 
@@ -98,6 +99,7 @@ impl Client {
         while self.connected {
             let message = self.receive()?;
             let command = message.split_ascii_whitespace().collect::<Vec<&str>>();
+            println!("{}", command.len());
             let args = command[1..command.len()].to_vec();
 
             match command[0] {
