@@ -9,7 +9,12 @@ use crate::addreses::Address;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
-    match Client::new(lock_mutex!(TCP_ADDRESS).get(0).unwrap_or(&Address::default()).format()) {
+    match Client::new(
+        lock_mutex!(TCP_ADDRESS)
+            .get(0)
+            .unwrap_or(&Address::default())
+            .format(),
+    ) {
         Ok(mut client) => {
             info!("Connected!");
 

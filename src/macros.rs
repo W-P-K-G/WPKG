@@ -2,7 +2,7 @@
 macro_rules! update_mutex {
     ($mutex: expr, $($new_value:tt)+) => {
         *lock_mutex!($mutex) = $($new_value)+;
-    }
+    };
 }
 
 #[macro_export]
