@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{globals::JSON_ADRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Adresses {
     #[serde(rename = "tAddresses")]
     pub tcp: Vec<Address>,
@@ -13,14 +13,6 @@ pub struct Adresses {
 pub struct Address {
     pub ip: String,
     pub port: u32,
-}
-
-impl Default for Adresses {
-    fn default() -> Self {
-        Self {
-            tcp: Default::default(),
-        }
-    }
 }
 
 impl Default for Address {
