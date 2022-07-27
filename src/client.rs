@@ -105,7 +105,7 @@ impl Client {
             match command[0] {
                 "msg" => {
                     if self.check_args(args.clone(), 1)? {
-                        messagebox(String::from(args[0]));
+                        messagebox(args.join(" "));
                         self.send("Done")?;
                     }
                 }
