@@ -101,6 +101,7 @@ async fn main() {
             }
             Ok(())
         };
+        //coś
 
         if let Err(err) = install() {
             error!("Failed to install WPKG: {}", err);
