@@ -100,7 +100,7 @@ impl Client {
         Ok(true)
     }
 
-    /// Clonse the connection to the
+    /// Clonse the connection
     pub fn close(&mut self) -> Result<()> {
         self.connected = false;
 
@@ -141,7 +141,7 @@ impl Client {
                     self.send(&Utils::stat())?;
                 }
                 "run" => {
-                    if args.clone().len() < 1 {
+                    if args.clone().is_empty() {
                         self.send("Missing argument")?;
                     } else {
                         Utils::run_process(args[0], args[1], false);
