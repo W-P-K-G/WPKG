@@ -43,7 +43,7 @@ async fn main() {
 
     println!("{}",crate::utils::Utils::get_working_dir());
 
-    #[cfg(target_os = "linux")]
+    #[cfg(target_os = "windows")]
     {
         use crate::utils::Utils;
         use platform_dirs::AppDirs;
