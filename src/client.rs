@@ -1,16 +1,11 @@
-extern crate systemstat;
-
 use std::io::{Read, Write};
 use std::net::TcpStream;
-use std::time::Duration;
 use std::{thread, time};
 
 use anyhow::Result;
-use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::{debug, error, info};
 
 use crate::addreses::Address;
-use crate::unwrap::CustomUnwrap;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
@@ -105,7 +100,7 @@ impl Client {
         Ok(true)
     }
 
-    /// Clonse the connection
+    /// Clonse the connection to the
     pub fn close(&mut self) -> Result<()> {
         self.connected = false;
 
@@ -143,66 +138,19 @@ impl Client {
 
                 // get system status
                 "stat" => {
-                    // get system status
-                    let sys = System::new();
-
-                    // init variables
-                    let mut cpu_usage = 0.;
-                    let mut memory_free = 0;
-                    let mut memory_total = 0;
-                    let mut swap_free = 0;
-                    let mut swap_total = 0;
-
-                    // get cpu usage
-                    match sys.cpu_load_aggregate() {
-                        Ok(cpu) => {
-                            thread::sleep(Duration::from_secs(1));
-                            let cpu = cpu.done().unwrap();
-                            cpu_usage = cpu.user * 100.0;
-                        }
-                        Err(x) => {
-                            error!("CPU load: error: {}", x);
-                        }
-                    }
-
-                    // get memory stats
-                    match sys.memory() {
-                        Ok(mem) => {
-                            memory_free = saturating_sub_bytes(mem.total, mem.free).as_u64();
-                            memory_total = mem.total.as_u64();
-                        }
-                        Err(x) => {
-                            error!("\nMemory: error: {}", x);
-                        }
-                    }
-
-                    // get swap stats
-                    match sys.swap() {
-                        Ok(swap) => {
-                            swap_free = saturating_sub_bytes(swap.total, swap.free).as_u64();
-                            swap_total = swap.total.as_u64();
-                        }
-                        Err(x) => {
-                            error!("\nMemory: error: {}", x);
-                        }
-                    }
-
-                    // send stats to the server
-                    self.send(&format!(
-                        "{} {} {} {} {}",
-                        cpu_usage, memory_free, memory_total, swap_free, swap_total
-                    ))?;
+                    self.send(&stat())?;
                 }
                 "run" => {
-                    if args.clone().is_empty() {
+                    if args.clone().len() < 1
+                    {
                         self.send("Missing argument")?;
-                    } else {
-                        run_process(args[0], args[1], false);
+                    }
+                    else
+                    {
+                        run_process(args[0],args[1],false);
                         self.send("Done")?;
                     }
                 }
-
-                // reconnect to the server
                 "reconnect" => {
                     if self.check_args(args.clone(), 2)? {
                         match Client::new(format!("{}:{}", args[0], args[1])) {
@@ -262,10 +210,10 @@ impl Client {
 
 /// "Correctly" close connection
 impl Drop for Client {
+    // TODO: add logger for example .unwrap_log()
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        self.send_command("/disconnect")
-            .expect_log("failed to send disconnect command");
-        self.close().expect_log("failed to close connection");
+        self.send_command("/disconnect");
+        self.close();
     }
 }
