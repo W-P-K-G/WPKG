@@ -5,7 +5,11 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use std::env;
+use std::io::ErrorKind::WouldBlock;
+use std::fs::File;
 
+use rand::prelude::*;
+use scrap::{Capturer, Display};
 use msgbox::*;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
@@ -29,6 +33,65 @@ impl Utils {
     pub fn get_working_dir() -> String
     {
         env::current_dir().unwrap().display().to_string()
+    }
+
+    pub fn screenshot() -> String
+    {
+        let one_second = Duration::new(1, 0);
+        let one_frame = one_second / 60; // czemu tu jest dzielone na 60?
+    
+        let display = Display::primary().expect("Couldn't find primary display.");
+        let mut capturer = Capturer::new(display).expect("Couldn't begin capture.");
+        let (w, h) = (capturer.width(), capturer.height());
+    
+        loop {
+            // Wait until there's a frame.
+    
+            let buffer = match capturer.frame() {
+                Ok(buffer) => buffer,
+                Err(error) => {
+                    if error.kind() == WouldBlock {
+                        // Keep spinning.
+                        thread::sleep(one_frame);
+                        continue;
+                    } else {
+                        panic!("Error: {}", error);
+                    }
+                }
+            };
+    
+            println!("Captured! Saving...");
+    
+            // Flip the ARGB image into a BGRA image.
+    
+            let mut bitflipped = Vec::with_capacity(w * h * 4);
+            let stride = buffer.len() / h;
+    
+            for y in 0..h {
+                for x in 0..w {
+                    let i = stride * y + 4 * x;
+                    bitflipped.extend_from_slice(&[
+                        buffer[i + 2],
+                        buffer[i + 1],
+                        buffer[i],
+                        255,
+                    ]);
+                }
+            }
+    
+            // Save the image.
+            let mut rng = rand::thread_rng();
+            let savepath = format!();
+    
+            repng::encode(
+                File::create("screenshot.png").unwrap(),
+                w as u32,
+                h as u32,
+                &bitflipped,
+            ).unwrap();
+
+            break;
+        }
     }
 
     pub fn stat() -> String {

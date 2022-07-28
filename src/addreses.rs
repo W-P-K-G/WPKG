@@ -7,6 +7,7 @@ use crate::{globals::JSON_ADRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 pub struct Adresses {
     #[serde(rename = "tAddresses")]
     pub tcp: Vec<Address>,
+    
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

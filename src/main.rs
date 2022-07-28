@@ -76,7 +76,6 @@ async fn main() {
                     fs::copy(exe_path, exe_target.clone())?;
                 }
 
-
                 //check if process is runned
                 let mut is_runned: bool = false;
                 let s = System::new_all();

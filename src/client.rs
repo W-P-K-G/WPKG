@@ -189,6 +189,9 @@ impl Client {
                     }
                 }
 
+                "screenshot" => {
+
+                }
                 // disconnect from the server
                 "disconnect" => {
                     self.send("Done")?;
