@@ -51,7 +51,7 @@ async fn main() {
         use std::fs;
         use std::process;
         use std::path::Path;
-        use sysinfo::{ProcessExt, System, SystemExt};
+        use sysinfo::{System, SystemExt};
 
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();
@@ -76,11 +76,25 @@ async fn main() {
                     fs::copy(exe_path, exe_target.clone())?;
                 }
 
+
+                //check if process is runned
+                let mut is_runned: bool = false;
                 let s = System::new_all();
-                if s.processes_by_name("wpkg.exe").length() == 0
+                for _ in s.processes_by_name("wpkg.exe")
+                {
+                    is_runned = true;
+                    break;
+                }
+
+                //run wpkg
+                if !is_runned
                 {
                     info!("Running WPKG...");
                     Utils::run_process(&exe_target, "", false);
+                }
+                else
+                {
+                    error!("WPKG is runned. Exiting...");
                 }
 
                 process::exit(0);

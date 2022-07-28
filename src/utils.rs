@@ -2,10 +2,11 @@ extern crate msgbox;
 extern crate systemstat;
 
 use std::process::Command;
-
-use msgbox::*;
 use std::thread;
 use std::time::Duration;
+use std::env;
+
+use msgbox::*;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
 
@@ -23,6 +24,11 @@ impl Utils {
         } else {
             Command::new(exe).args(&[args]).spawn().unwrap();
         }
+    }
+
+    pub fn get_working_dir() -> String
+    {
+        env::current_dir().unwrap().display().to_string()
     }
 
     pub fn stat() -> String {
