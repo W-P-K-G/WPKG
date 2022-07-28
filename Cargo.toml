@@ -2,6 +2,7 @@
 name = "wpkg"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -24,3 +25,8 @@ whoami = "1.2.1"
 tracing-subscriber = "0.3.15"
 tracing = "0.1.35"
 systemstat = "0.1.11"
+platform-dirs = "0.3.0"
+sysinfo = "0.24.7"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
