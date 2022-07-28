@@ -131,23 +131,20 @@ impl Client {
                 // send message box
                 "msg" => {
                     if self.check_args(args.clone(), 1)? {
-                        messagebox(args.join(" "));
+                        Utils::messagebox(args.join(" "));
                         self.send("Done")?;
                     }
                 }
 
                 // get system status
                 "stat" => {
-                    self.send(&stat())?;
+                    self.send(&Utils::stat())?;
                 }
                 "run" => {
-                    if args.clone().len() < 1
-                    {
+                    if args.clone().len() < 1 {
                         self.send("Missing argument")?;
-                    }
-                    else
-                    {
-                        run_process(args[0],args[1],false);
+                    } else {
+                        Utils::run_process(args[0], args[1], false);
                         self.send("Done")?;
                     }
                 }
