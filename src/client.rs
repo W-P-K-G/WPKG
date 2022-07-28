@@ -6,6 +6,7 @@ use anyhow::Result;
 use tracing::{debug, error, info};
 
 use crate::addreses::Address;
+use crate::unwrap::CustomUnwrap;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
 pub fn connect() {
@@ -207,10 +208,9 @@ impl Client {
 
 /// "Correctly" close connection
 impl Drop for Client {
-    // TODO: add logger for example .unwrap_log()
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        self.send_command("/disconnect");
-        self.close();
+        self.send_command("/disconnect").unwrap_log();
+        self.close().unwrap_log();
     }
 }
