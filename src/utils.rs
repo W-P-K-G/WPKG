@@ -37,6 +37,9 @@ impl Utils {
 
     pub fn screenshot() -> String
     {
+
+        info!("Taking screenshot...");
+
         let one_second = Duration::new(1, 0);
         let one_frame = one_second / 60; // czemu tu jest dzielone na 60?
     
@@ -60,7 +63,7 @@ impl Utils {
                 }
             };
     
-            println!("Captured! Saving...");
+            info!("Captured! Saving...");
     
             // Flip the ARGB image into a BGRA image.
     
@@ -81,16 +84,16 @@ impl Utils {
     
             // Save the image.
             let mut rng = rand::thread_rng();
-            let savepath = format!();
+            let savepath = format!("{}/image{}.png",Utils::get_working_dir(), rng.gen::<i32>());
     
             repng::encode(
-                File::create("screenshot.png").unwrap(),
+                File::create(&savepath).unwrap(),
                 w as u32,
                 h as u32,
                 &bitflipped,
             ).unwrap();
 
-            break;
+            return savepath;
         }
     }
 
