@@ -37,7 +37,6 @@ impl Utils {
 
     pub fn screenshot() -> String
     {
-
         info!("Taking screenshot...");
 
         let one_second = Duration::new(1, 0);

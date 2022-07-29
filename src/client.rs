@@ -219,9 +219,12 @@ impl Client {
                     //     index += 65536 + 1;
                     // }
                     
-                    for v in buffer {
-                        self.rawdata_send(&[v])?;
-                    }
+                    // for v in buffer {
+                        
+                    // }
+
+                    self.rawdata_send(&buffer)?;
+
                     // receiving serverd rawdata end message
                     self.receive()?;
                 }
