@@ -5,6 +5,7 @@ use std::io::BufReader;
 use std::fs::File;
 use std::cmp;
 
+use async_recursion::async_recursion;
 use anyhow::Result;
 use tracing::{debug, error, info};
 
@@ -12,7 +13,7 @@ use crate::addreses::Address;
 use crate::unwrap::CustomUnwrap;
 use crate::{lock_mutex, utils::*, TCP_ADDRESS};
 
-pub fn connect() {
+pub async fn connect() {
     // connect to the ServerD
     match Client::new(
         lock_mutex!(TCP_ADDRESS)
@@ -24,7 +25,7 @@ pub fn connect() {
             info!("Connected!");
 
             // reconnect if error
-            if let Err(e) = client.run() {
+            if let Err(e) = client.run().await {
                 error!("Unexpected error {e}");
                 thread::sleep(time::Duration::from_secs(10));
                 connect();
@@ -79,7 +80,7 @@ impl Client {
 
         // read buffer
         let len = self.stream.read(&mut data)?;
-        
+
         // get buffer without "empty" bytes
         let recv_buf = &data[0..len];
 
@@ -89,7 +90,7 @@ impl Client {
     pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
 
         self.stream.write_all(message)?;
-        
+
         Ok(())
     }
 
@@ -133,7 +134,8 @@ impl Client {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    #[async_recursion]
+    pub async fn run(&mut self) -> Result<()> {
         info!("Client started working");
 
         // setup client name
@@ -182,7 +184,7 @@ impl Client {
                                 self.send_command("/disconnect")?;
                                 self.close()?;
 
-                                client.run()?;
+                                client.run().await?;
                             }
                             Err(_e) => {
                                 error!("Error reconnecting to server");
@@ -193,9 +195,9 @@ impl Client {
                 }
 
                 "screenshot" => {
-                    let url = Utils::screenshot_url();
-                    
-                    self.send(&url);
+                    let url = Utils::screenshot_url().await;
+
+                    self.send(&url)?;
                 }
                 // disconnect from the server
                 "disconnect" => {

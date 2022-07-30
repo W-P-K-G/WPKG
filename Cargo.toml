@@ -30,6 +30,8 @@ sysinfo = "0.24.7"
 screenshots = "0.4.2"
 rand = "0.8.5"
 imgurs = "0.8.1"
+futures = "0.3.21"
+async-recursion = "1.0.0"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

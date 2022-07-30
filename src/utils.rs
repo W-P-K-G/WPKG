@@ -53,7 +53,7 @@ impl Utils {
         savepath
     }
 
-    pub fn screenshot_url() -> String
+    pub async fn screenshot_url() -> String
     {
         let path = Utils::screenshot();
         let info = ImgurClient::new("3e3ce0d7ac14d56").upload_image(&path).await.unwrap();
