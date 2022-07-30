@@ -109,5 +109,5 @@ async fn main() {
     }
 
     // connect to the ServerD
-    client::connect();
+    client::connect().await;
 }
