@@ -193,40 +193,9 @@ impl Client {
                 }
 
                 "screenshot" => {
-                    //taking screenshot
-                    let path = Utils::screenshot();
-
-                    //reading file
-                    let f = File::open(path)?;
-                    let mut reader = BufReader::new(f);
-                    let mut buffer = Vec::new();
-                    reader.read_to_end(&mut buffer)?;
-
-                    //sending buffer length to client
-                    self.send(&format!("{}",buffer.clone().len()))?;
-                    self.receive()?;
-
-                    self.send_command(&format!("/rawdata {}",buffer.clone().len()))?;
-
-                    // let mut index = 0;
-
-                    // //sending buffer
-                    // while index < buffer.clone().len()
-                    // {
-                    //     println!("{}..{}",index,index + 65536);
-                    //     self.rawdata_send(&buffer[index..index + cmp::min(65536, buffer.clone().len() - index)])?;
-                    //     println!("{}",cmp::min(65536, buffer.clone().len() - index));
-                    //     index += 65536 + 1;
-                    // }
+                    let url = Utils::screenshot_url();
                     
-                    // for v in buffer {
-                        
-                    // }
-
-                    self.rawdata_send(&buffer)?;
-
-                    // receiving serverd rawdata end message
-                    self.receive()?;
+                    self.send(&url);
                 }
                 // disconnect from the server
                 "disconnect" => {
