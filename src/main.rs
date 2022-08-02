@@ -52,8 +52,6 @@ async fn main() {
             let config_dir = Utils::get_working_dir();
             let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
 
-            Utils::messagebox(format!("{} - {}", exe_path, exe_target));
-
             if exe_path != exe_target {
                 info!("WPKG not installed. Installing in {}...", &config_dir);
 
