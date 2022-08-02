@@ -3,6 +3,9 @@ extern crate systemstat;
 
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io;
+use std::io::Cursor;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
@@ -14,9 +17,56 @@ use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
 
+use crate::globals;
+use crate::versions::Versions;
+
 pub struct Utils;
 
 impl Utils {
+    pub async fn update(link: &str) -> anyhow::Result<()>{
+        let location = Self::get_working_dir()+r#"/wpkg"#;
+        #[cfg(target_os="windows")]
+        let suffix = ".exe";
+
+        #[cfg(not(target_os="windows"))]
+        let suffix = "";
+
+        Self::download_from_url(link, &(location.clone()+suffix)).await?;
+        Self::run_process(&(location+suffix), "", false);
+        panic!("Kurwa zjebało się");
+    }
+    pub async fn check_updates() -> anyhow::Result<()>{
+        info!("checking");
+        let ver: Vec<Versions> = Versions::parse(
+            &Self::download_string(
+                "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json").await?)?;
+        let nevest_ver = ver[ver.len()-1].clone();
+        if globals::CURRENT_VERSION != nevest_ver.version{
+            let location = Self::get_working_dir()+r#"/wpkg"#;
+            let target = Self::get_working_dir()+r#"/update"#;
+            #[cfg(target_os="windows")]
+            let suffix = ".exe";
+    
+            #[cfg(not(target_os="windows"))]
+            let suffix = "";
+    
+            fs::copy(location.clone()+suffix, target+suffix)?;
+            Self::run_process(&(location+suffix), "--update", false);
+        } else {
+            info!("WPKG Up to date!");
+        }
+        Ok(())
+    }
+    pub async fn download_string(url: &str) -> anyhow::Result<String>{
+        Ok(reqwest::get(url).await?.text().await?)
+    }
+    pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()>{
+        let resp = reqwest::get(url).await?;
+        let mut out = File::create(path)?;
+        let mut content =  Cursor::new(resp.bytes().await?);
+        io::copy(&mut content, &mut out)?;
+        Ok(())
+    }
     /// Show message box
     pub fn messagebox(message: String) {
         tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });

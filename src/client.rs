@@ -15,7 +15,6 @@ pub async fn connect(addr: String) {
     match Client::new(addr.clone()) {
         Ok(mut client) => {
             info!("Connected!");
-
             // reconnect if error
             if let Err(e) = client.run().await {
                 error!("Unexpected error {e}");
