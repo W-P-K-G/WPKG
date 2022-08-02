@@ -7,13 +7,9 @@ mod addreses;
 mod client;
 mod globals;
 mod logger;
-mod macros;
 mod unwrap;
 mod utils;
 
-use std::sync::Mutex;
-
-use lazy_static::lazy_static;
 use tracing::*;
 
 use crate::addreses::{Address, Adresses};
@@ -22,10 +18,6 @@ use crate::addreses::{Address, Adresses};
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
 /// Server port backup if api isn't available
 pub const TCP_BACKUP_PORT: u32 = 3217;
-
-lazy_static! {
-    pub static ref TCP_ADDRESS: Mutex<Vec<Address>> = Mutex::new(vec![Address::default()]);
-}
 
 #[tokio::main]
 async fn main() {

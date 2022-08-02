@@ -3019,7 +3019,6 @@ dependencies = [
  "async-recursion 1.0.0",
  "better-panic",
  "imgurs",
- "lazy_static",
  "msgbox",
  "platform-dirs",
  "rand",
