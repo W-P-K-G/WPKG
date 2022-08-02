@@ -1,9 +1,6 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
-use std::io::BufReader;
-use std::fs::File;
-use std::cmp;
 
 use async_recursion::async_recursion;
 use anyhow::Result;
@@ -212,10 +209,12 @@ impl Client {
                 // send help message
                 "help" => {
                     let help = format!(
-                        "{}{}{}{}{}{}{}{}{}{}{}{}",
+                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
                         "msg <message> - showing message\n",
+                        "stat - sending pc stats (CPU, RAM and Swap)\n",
                         "run <process> <args> - run process\n",
                         "reconnect <ip> <port> - reconnecting to another ServerD\n",
+                        "screenshot - make screenshot and sending url\n",
                         "disconnect - disconnecting ServerD Client\n",
                         "ping - sending ping\n",
                         "help - showing help\n",

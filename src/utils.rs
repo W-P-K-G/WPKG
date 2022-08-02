@@ -5,9 +5,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use std::env;
-use std::io::ErrorKind::WouldBlock;
-use std::fs::File;
-use std::{fs, time::Instant};
+use std::fs;
 
 use rand::prelude::*;
 use screenshots::Screen;
@@ -32,9 +30,34 @@ impl Utils {
         }
     }
 
+    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool,currentdir: &str) {
+        if wait {
+            Command::new(exe).args(&[args]).current_dir(currentdir).output().unwrap();
+        } else {
+            Command::new(exe).args(&[args]).current_dir(currentdir).spawn().unwrap();
+        }
+    }
+
     pub fn get_working_dir() -> String
     {
-        env::current_dir().unwrap().display().to_string()
+        #[cfg(not(target_os = "windows"))]
+        return env::current_dir().unwrap().display().to_string();
+
+        #[cfg(target_os = "windows")]
+        {
+            use platform_dirs::AppDirs;
+
+            let app_dirs = AppDirs::new(Some("WPKG"), true).unwrap();
+            let config_dir = app_dirs.config_dir.display().to_string();
+
+            if !Path::new(&config_dir).exists()
+            {
+                info!("WPKG dir not exists... Creating it...");
+                fs::create_dir(&config_dir)?;
+            }
+
+            return config_dir;
+        }
     }
 
     pub fn screenshot() -> String
