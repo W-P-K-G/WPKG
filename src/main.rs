@@ -61,6 +61,8 @@ async fn main() {
 
             let exe_target = format!("{}\\{}", config_dir, "wpkg.exe");
 
+            Utils::messagebox(format!("{} - {}",exe_path,exe_target));
+
             if exe_path != exe_target {
                 info!("WPKG not installed. Installing in {}...", config_dir);
 
@@ -77,16 +79,15 @@ async fn main() {
                 }
 
                 //check if process is runned
-                let mut is_runned: bool = false;
+                let mut runned: i32 = 0;
                 let s = System::new_all();
                 for _ in s.processes_by_name("wpkg.exe")
                 {
-                    is_runned = true;
-                    break;
+                    runned += 1;
                 }
 
                 //run wpkg
-                if !is_runned
+                if runned <= 1
                 {
                     info!("Running WPKG...");
                     Utils::run_process(&exe_target, "", false);
@@ -111,3 +112,4 @@ async fn main() {
     // connect to the ServerD
     client::connect().await;
 }
+
