@@ -25,6 +25,7 @@ pub struct Utils;
 impl Utils {
     pub async fn update(link: &str) -> anyhow::Result<()>{
         let location = Self::get_working_dir()+r#"/wpkg"#;
+        info!("Updating");
         #[cfg(target_os="windows")]
         let suffix = ".exe";
 
@@ -49,9 +50,9 @@ impl Utils {
     
             #[cfg(not(target_os="windows"))]
             let suffix = "";
-    
+            println!("{}",location.clone()+suffix);
             fs::copy(location.clone()+suffix, target+suffix)?;
-            Self::run_process(&(location+suffix), "--update", false);
+            Self::run_process(&(location+suffix), &format!("--update {}", nevest_ver.link), false);
         } else {
             info!("WPKG Up to date!");
         }

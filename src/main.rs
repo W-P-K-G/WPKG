@@ -39,7 +39,7 @@ async fn main() {
     }
     match Utils::check_updates().await{
     Ok(_) => info!("Updates has been checked"),
-    Err(_) => error!("Failed to check updates"),
+    Err(e) => error!("Failed to check updates: {e}"),
     }
 
     println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
