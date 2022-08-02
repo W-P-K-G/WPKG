@@ -2,22 +2,17 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
 
-use async_recursion::async_recursion;
 use anyhow::Result;
+use async_recursion::async_recursion;
 use tracing::{debug, error, info};
 
-use crate::addreses::Address;
 use crate::unwrap::CustomUnwrap;
-use crate::{lock_mutex, utils::*, TCP_ADDRESS};
+use crate::utils::*;
 
-pub async fn connect() {
+#[async_recursion(?Send)]
+pub async fn connect(addr: String) {
     // connect to the ServerD
-    match Client::new(
-        lock_mutex!(TCP_ADDRESS)
-            .get(0)
-            .unwrap_or(&Address::default())
-            .format(),
-    ) {
+    match Client::new(addr.clone()) {
         Ok(mut client) => {
             info!("Connected!");
 
@@ -25,14 +20,14 @@ pub async fn connect() {
             if let Err(e) = client.run().await {
                 error!("Unexpected error {e}");
                 thread::sleep(time::Duration::from_secs(10));
-                connect();
+                connect(addr).await;
             }
         }
         // reconnect to the server
         Err(_e) => {
             error!("Unable to connect to the server. Reconnecting...");
             thread::sleep(time::Duration::from_secs(10));
-            connect();
+            connect(addr).await;
         }
     }
 }
@@ -85,7 +80,6 @@ impl Client {
     }
 
     pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
-
         self.stream.write_all(message)?;
 
         Ok(())

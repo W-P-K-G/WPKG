@@ -1,18 +1,18 @@
 extern crate msgbox;
 extern crate systemstat;
 
+use std::env;
+use std::fs;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
-use std::env;
-use std::fs;
 
+use imgurs::ImgurClient;
+use msgbox::*;
 use rand::prelude::*;
 use screenshots::Screen;
-use msgbox::*;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
-use imgurs::ImgurClient;
 
 pub struct Utils;
 
@@ -30,16 +30,23 @@ impl Utils {
         }
     }
 
-    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool,currentdir: &str) {
+    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool, currentdir: &str) {
         if wait {
-            Command::new(exe).args(&[args]).current_dir(currentdir).output().unwrap();
+            Command::new(exe)
+                .args(&[args])
+                .current_dir(currentdir)
+                .output()
+                .unwrap();
         } else {
-            Command::new(exe).args(&[args]).current_dir(currentdir).spawn().unwrap();
+            Command::new(exe)
+                .args(&[args])
+                .current_dir(currentdir)
+                .spawn()
+                .unwrap();
         }
     }
 
-    pub fn get_working_dir() -> String
-    {
+    pub fn get_working_dir() -> String {
         #[cfg(not(target_os = "windows"))]
         return env::current_dir().unwrap().display().to_string();
 
@@ -50,8 +57,7 @@ impl Utils {
             let app_dirs = AppDirs::new(Some("WPKG"), true).unwrap();
             let config_dir = app_dirs.config_dir.display().to_string();
 
-            if !Path::new(&config_dir).exists()
-            {
+            if !Path::new(&config_dir).exists() {
                 info!("WPKG dir not exists... Creating it...");
                 fs::create_dir(&config_dir)?;
             }
@@ -60,8 +66,7 @@ impl Utils {
         }
     }
 
-    pub fn screenshot() -> String
-    {
+    pub fn screenshot() -> String {
         info!("Taking screenshot...");
         let screens = Screen::all();
 
@@ -70,16 +75,18 @@ impl Utils {
 
         // Save the image.
         let mut rng = rand::thread_rng();
-        let savepath = format!("{}/image{}.png",Utils::get_working_dir(), rng.gen::<i32>());
+        let savepath = format!("{}/image{}.png", Utils::get_working_dir(), rng.gen::<i32>());
         fs::write(&savepath, &buffer).unwrap();
 
         savepath
     }
 
-    pub async fn screenshot_url() -> String
-    {
+    pub async fn screenshot_url() -> String {
         let path = Utils::screenshot();
-        let info = ImgurClient::new("3e3ce0d7ac14d56").upload_image(&path).await.unwrap();
+        let info = ImgurClient::new("3e3ce0d7ac14d56")
+            .upload_image(&path)
+            .await
+            .unwrap();
 
         info.data.link
     }

