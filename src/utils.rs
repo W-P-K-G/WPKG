@@ -41,7 +41,7 @@ impl Utils {
             }
         }
         #[cfg(target_os="windows")]{
-
+            Self::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true);
         }
 
         let location = Self::get_working_dir()?+r#"/wpkg"#;
