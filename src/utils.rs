@@ -27,15 +27,13 @@ pub struct Utils;
 
 impl Utils {
     pub async fn update(link: &str) -> anyhow::Result<()>{
-        
-        
         // Kill old wpkg
         #[cfg(not(target_os="windows"))]{
             use std::os::unix::prelude::PermissionsExt;
             let mut system = sysinfo::System::new();
             system.refresh_all();
             for p in system.processes_by_name("wpkg") {
-                nix::sys::signal::kill(nix::unistd::Pid::from_raw(p.pid().to_string().parse()?), nix::sys::signal::SIGKILL).expect("s");
+                nix::sys::signal::kill(nix::unistd::Pid::from_raw(p.pid().to_string().parse()?), nix::sys::signal::SIGKILL)?;
             }
         }
         #[cfg(target_os="windows")]{
@@ -43,7 +41,7 @@ impl Utils {
         }
 
         let location = Self::get_working_dir()?+r#"/wpkg"#;
-        info!("Updating");
+        info!("Updating... 2/2");
         #[cfg(target_os="windows")]
         let suffix = ".exe";
 
@@ -52,25 +50,25 @@ impl Utils {
         
         Self::download_from_url(link, &(location.clone()+suffix)).await?;
         Self::run_process(&(location+suffix), vec![""], false)?;
-        panic!("Kurwa zjebało się");
+        std::process::exit(0);
     }
     pub async fn check_updates() -> anyhow::Result<()>{
-        info!("checking");
+        info!("Checing for updates..");
         let ver: Vec<Versions> = Versions::parse(
             &Self::download_string(
                 "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json").await?)?;
         let nevest_ver = ver[ver.len()-1].clone();
         if globals::CURRENT_VERSION != nevest_ver.version{
+            info!("Updating... 1/2");
             let target = Self::get_working_dir()?+r#"/update"#;
             #[cfg(target_os="windows")]
             let suffix = ".exe";
     
             #[cfg(not(target_os="windows"))]
             let suffix = "";
-            println!("{}",&(target.clone()+suffix));
             Self::download_from_url(&nevest_ver.link, &(target.clone()+suffix)).await?;
             Self::run_process(&(target+suffix), vec!["--update", &nevest_ver.link], false)?;
-            panic!();
+            std::process::exit(0);
         } else {
             info!("WPKG Up to date!");
         }

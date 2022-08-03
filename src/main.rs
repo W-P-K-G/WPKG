@@ -29,6 +29,8 @@ async fn main() {
     // init logger
     logger::init();
 
+    println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
+    
     let args: Vec<String> = env::args().collect();
     match args.iter().any(|v| v == "--update"){
         true => {
@@ -41,8 +43,6 @@ async fn main() {
     Ok(_) => info!("Updates has been checked"),
     Err(e) => error!("Failed to check updates: {e}"),
     }
-
-    println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
 
     // get tcp server ip address from the api
     let tcp_address = Adresses::get().await.unwrap_or_default();
