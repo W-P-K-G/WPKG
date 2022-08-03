@@ -11,6 +11,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use std::vec;
+use anyhow::anyhow;
 
 use imgurs::ImgurClient;
 use msgbox::*;
@@ -31,13 +32,15 @@ impl Utils {
         
         
         // Kill old wpkg
-        #[cfg(not(target_os="windows"))]
-        {
+        #[cfg(not(target_os="windows"))]{
             let mut system = sysinfo::System::new();
             system.refresh_all();
             for p in system.processes_by_name("wpkg") {
                 nix::sys::signal::kill(nix::unistd::Pid::from_raw(p.pid().to_string().parse()?), nix::sys::signal::SIGKILL).expect("s");
             }
+        }
+        #[cfg(target_os="windows")]{
+
         }
 
         let location = Self::get_working_dir()?+r#"/wpkg"#;
@@ -145,7 +148,10 @@ impl Utils {
         info!("Taking screenshot...");
         let screens = Screen::all();
 
-        let image = screens[0].capture().unwrap();
+        let image = match screens[0].capture(){
+            Some(e) => e,
+            None => return Err(anyhow!("Could not find any screens")),
+        };
         let buffer = image.buffer();
 
         // Save the image.
