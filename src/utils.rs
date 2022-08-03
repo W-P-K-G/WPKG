@@ -1,7 +1,7 @@
 extern crate msgbox;
 extern crate systemstat;
 
-use std::env;
+
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -126,8 +126,10 @@ impl Utils {
     }
 
     pub fn get_working_dir() -> anyhow::Result<String> {
-        #[cfg(not(target_os = "windows"))]
-        return Ok(env::current_dir()?.display().to_string());
+        #[cfg(not(target_os = "windows"))]{
+            use std::env;
+            return Ok(env::current_dir()?.display().to_string());
+        }
 
         #[cfg(target_os = "windows")]
         {
@@ -141,7 +143,7 @@ impl Utils {
                 fs::create_dir(&config_dir)?;
             }
 
-            return Ok(config_dir);
+            Ok(config_dir)
         }
     }
 
