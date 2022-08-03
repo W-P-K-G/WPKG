@@ -30,6 +30,7 @@ async fn main() {
     logger::init();
 
     let args: Vec<String> = env::args().collect();
+    println!("{}", args[1]);
     match args.iter().any(|v| v == "--update"){
         true => {
             let possision = args.iter().position(|r| r == "--update").unwrap();
