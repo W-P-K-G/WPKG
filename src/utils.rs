@@ -1,6 +1,7 @@
 extern crate msgbox;
 extern crate systemstat;
 
+use std::env;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -29,7 +30,8 @@ impl Utils {
     pub async fn update(link: &str) -> anyhow::Result<()>{
         // Kill old wpkg
         #[cfg(not(target_os="windows"))]{
-            use std::os::unix::prelude::PermissionsExt;
+            use sysinfo::SystemExt;
+            use sysinfo::ProcessExt;
             let mut system = sysinfo::System::new();
             system.refresh_all();
             for p in system.processes_by_name("wpkg") {
@@ -82,6 +84,7 @@ impl Utils {
         let mut out = File::create(path)?;
         
         #[cfg(not(target_os="windows"))]{
+            use std::os::unix::prelude::PermissionsExt;
             let mut permissions = out.metadata()?.permissions();
             permissions.set_mode(0o777);
             out.set_permissions(permissions)?;
