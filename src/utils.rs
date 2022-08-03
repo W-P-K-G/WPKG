@@ -11,6 +11,7 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use std::vec;
+use anyhow::Context;
 use anyhow::anyhow;
 
 use imgurs::ImgurClient;
@@ -148,10 +149,9 @@ impl Utils {
         info!("Taking screenshot...");
         let screens = Screen::all();
 
-        let image = match screens[0].capture(){
-            Some(e) => e,
-            None => return Err(anyhow!("Could not find any screens")),
-        };
+        if screens.is_empty() { return Err(anyhow!("Screen is empty")); }
+        
+        let image = screens[0].capture().context("Could not find screens")?;
         let buffer = image.buffer();
 
         // Save the image.
