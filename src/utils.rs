@@ -1,12 +1,11 @@
 extern crate msgbox;
 extern crate systemstat;
 
-use std::env;
 use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Cursor;
-use std::os::unix::prelude::PermissionsExt;
+use std::path::Path;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
@@ -18,8 +17,6 @@ use imgurs::ImgurClient;
 use msgbox::*;
 use rand::prelude::*;
 use screenshots::Screen;
-use sysinfo::ProcessExt;
-use sysinfo::SystemExt;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
 
@@ -34,6 +31,7 @@ impl Utils {
         
         // Kill old wpkg
         #[cfg(not(target_os="windows"))]{
+            use std::os::unix::prelude::PermissionsExt;
             let mut system = sysinfo::System::new();
             system.refresh_all();
             for p in system.processes_by_name("wpkg") {
@@ -41,7 +39,7 @@ impl Utils {
             }
         }
         #[cfg(target_os="windows")]{
-            Self::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true);
+            Self::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
         }
 
         let location = Self::get_working_dir()?+r#"/wpkg"#;
@@ -69,6 +67,7 @@ impl Utils {
     
             #[cfg(not(target_os="windows"))]
             let suffix = "";
+            println!("{}",&(target.clone()+suffix));
             Self::download_from_url(&nevest_ver.link, &(target.clone()+suffix)).await?;
             Self::run_process(&(target+suffix), vec!["--update", &nevest_ver.link], false)?;
             panic!();
@@ -84,7 +83,7 @@ impl Utils {
         let resp = reqwest::get(url).await?;
         let mut out = File::create(path)?;
         
-        #[cfg(not(target="windows"))]{
+        #[cfg(not(target_os="windows"))]{
             let mut permissions = out.metadata()?.permissions();
             permissions.set_mode(0o777);
             out.set_permissions(permissions)?;
@@ -133,7 +132,7 @@ impl Utils {
         {
             use platform_dirs::AppDirs;
 
-            let app_dirs = AppDirs::new(Some("WPKG"), true)?;
+            let app_dirs = AppDirs::new(Some("WPKG"), true).context("Error")?;
             let config_dir = app_dirs.config_dir.display().to_string();
 
             if !Path::new(&config_dir).exists() {

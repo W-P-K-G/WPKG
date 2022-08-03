@@ -30,7 +30,6 @@ async fn main() {
     logger::init();
 
     let args: Vec<String> = env::args().collect();
-    println!("{}", args[1]);
     match args.iter().any(|v| v == "--update"){
         true => {
             let possision = args.iter().position(|r| r == "--update").unwrap();
@@ -68,7 +67,7 @@ async fn main() {
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();
 
-            let config_dir = Utils::get_working_dir();
+            let config_dir = Utils::get_working_dir()?;
             let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
 
             if exe_path != exe_target {
@@ -89,7 +88,7 @@ async fn main() {
                 //run wpkg
                 if runned <= 1 {
                     info!("Running WPKG...");
-                    Utils::run_process_with_work_dir(&exe_target, "", false, &config_dir);
+                    Utils::run_process_with_work_dir(&exe_target, "", false, &config_dir)?;
                 } else {
                     error!("WPKG is runned. Exiting...");
                 }
