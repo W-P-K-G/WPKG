@@ -150,8 +150,8 @@ impl Utils {
         let screens = Screen::all();
 
         if screens.is_empty() { return Err(anyhow!("Screen is empty")); }
-        
-        let image = screens[0].capture().context("Could not find screens")?;
+
+        let image = screens.get(0).context("Could not find screens")?.capture().context("Image is empty")?;
         let buffer = image.buffer();
 
         // Save the image.
