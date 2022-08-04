@@ -59,21 +59,26 @@ impl Utils {
     }
     pub async fn check_updates() -> anyhow::Result<()> {
         info!("Checing for updates..");
+        
         let ver: Vec<Versions> = Versions::parse(
             &Self::download_string(
                 "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json",
             )
             .await?,
         )?;
+
         let nevest_ver = ver[ver.len() - 1].clone();
+
         if globals::CURRENT_VERSION != nevest_ver.version {
             info!("Updating... 1/2");
             let target = Self::get_working_dir()? + r#"/update"#;
+
             #[cfg(target_os = "windows")]
             let suffix = ".exe";
 
             #[cfg(not(target_os = "windows"))]
             let suffix = "";
+
             Self::download_from_url(&nevest_ver.link, &(target.clone() + suffix)).await?;
             Self::run_process(
                 &(target + suffix),
