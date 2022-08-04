@@ -154,6 +154,7 @@ impl Utils {
         #[cfg(target_os = "windows")]
         {
             use platform_dirs::AppDirs;
+            use std::path::Path;
 
             let app_dirs = AppDirs::new(Some("WPKG"), true).context("Error")?;
             let config_dir = app_dirs.config_dir.display().to_string();
