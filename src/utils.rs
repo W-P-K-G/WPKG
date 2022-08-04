@@ -1,18 +1,16 @@
 extern crate msgbox;
 extern crate systemstat;
 
-
+use anyhow::anyhow;
+use anyhow::Context;
 use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Cursor;
-use std::path::Path;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
 use std::vec;
-use anyhow::Context;
-use anyhow::anyhow;
 
 use imgurs::ImgurClient;
 use msgbox::*;
@@ -27,70 +25,83 @@ use crate::versions::Versions;
 pub struct Utils;
 
 impl Utils {
-    pub async fn update(link: &str) -> anyhow::Result<()>{
+    pub async fn update(link: &str) -> anyhow::Result<()> {
         // Kill old wpkg
-        #[cfg(not(target_os="windows"))]{
-            use sysinfo::SystemExt;
+        #[cfg(not(target_os = "windows"))]
+        {
             use sysinfo::ProcessExt;
+            use sysinfo::SystemExt;
             let mut system = sysinfo::System::new();
             system.refresh_all();
             for p in system.processes_by_name("wpkg") {
-                nix::sys::signal::kill(nix::unistd::Pid::from_raw(p.pid().to_string().parse()?), nix::sys::signal::SIGKILL)?;
+                nix::sys::signal::kill(
+                    nix::unistd::Pid::from_raw(p.pid().to_string().parse()?),
+                    nix::sys::signal::SIGKILL,
+                )?;
             }
         }
-        #[cfg(target_os="windows")]{
+        #[cfg(target_os = "windows")]
+        {
             Self::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
         }
 
-        let location = Self::get_working_dir()?+r#"/wpkg"#;
+        let location = Self::get_working_dir()? + r#"/wpkg"#;
         info!("Updating... 2/2");
-        #[cfg(target_os="windows")]
+        #[cfg(target_os = "windows")]
         let suffix = ".exe";
 
-        #[cfg(not(target_os="windows"))]
+        #[cfg(not(target_os = "windows"))]
         let suffix = "";
-        
-        Self::download_from_url(link, &(location.clone()+suffix)).await?;
-        Self::run_process(&(location+suffix), vec![""], false)?;
+
+        Self::download_from_url(link, &(location.clone() + suffix)).await?;
+        Self::run_process(&(location + suffix), vec![""], false)?;
         std::process::exit(0);
     }
-    pub async fn check_updates() -> anyhow::Result<()>{
+    pub async fn check_updates() -> anyhow::Result<()> {
         info!("Checing for updates..");
         let ver: Vec<Versions> = Versions::parse(
             &Self::download_string(
-                "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json").await?)?;
-        let nevest_ver = ver[ver.len()-1].clone();
-        if globals::CURRENT_VERSION != nevest_ver.version{
+                "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json",
+            )
+            .await?,
+        )?;
+        let nevest_ver = ver[ver.len() - 1].clone();
+        if globals::CURRENT_VERSION != nevest_ver.version {
             info!("Updating... 1/2");
-            let target = Self::get_working_dir()?+r#"/update"#;
-            #[cfg(target_os="windows")]
+            let target = Self::get_working_dir()? + r#"/update"#;
+            #[cfg(target_os = "windows")]
             let suffix = ".exe";
-    
-            #[cfg(not(target_os="windows"))]
+
+            #[cfg(not(target_os = "windows"))]
             let suffix = "";
-            Self::download_from_url(&nevest_ver.link, &(target.clone()+suffix)).await?;
-            Self::run_process(&(target+suffix), vec!["--update", &nevest_ver.link], false)?;
+            Self::download_from_url(&nevest_ver.link, &(target.clone() + suffix)).await?;
+            Self::run_process(
+                &(target + suffix),
+                vec!["--update", &nevest_ver.link],
+                false,
+            )?;
             std::process::exit(0);
         } else {
             info!("WPKG Up to date!");
         }
         Ok(())
     }
-    pub async fn download_string(url: &str) -> anyhow::Result<String>{
+    pub async fn download_string(url: &str) -> anyhow::Result<String> {
         Ok(reqwest::get(url).await?.text().await?)
     }
-    pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()>{
+    pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
         let resp = reqwest::get(url).await?;
         let mut out = File::create(path)?;
-        
-        #[cfg(not(target_os="windows"))]{
+
+        #[cfg(not(target_os = "windows"))]
+        {
             use std::os::unix::prelude::PermissionsExt;
             let mut permissions = out.metadata()?.permissions();
             permissions.set_mode(0o777);
             out.set_permissions(permissions)?;
         }
 
-        let mut content =  Cursor::new(resp.bytes().await?);
+        let mut content = Cursor::new(resp.bytes().await?);
         io::copy(&mut content, &mut out)?;
         Ok(())
     }
@@ -108,25 +119,29 @@ impl Utils {
         Ok(())
     }
 
-    pub fn run_process_with_work_dir(exe: &str, args: &str, wait: bool, currentdir: &str) -> anyhow::Result<()> {
+    pub fn run_process_with_work_dir(
+        exe: &str,
+        args: &str,
+        wait: bool,
+        currentdir: &str,
+    ) -> anyhow::Result<()> {
         if wait {
             Command::new(exe)
                 .args(&[args])
                 .current_dir(currentdir)
-                .output()
-                ?;
+                .output()?;
         } else {
             Command::new(exe)
                 .args(&[args])
                 .current_dir(currentdir)
-                .spawn()
-                ?;
+                .spawn()?;
         }
         Ok(())
     }
 
     pub fn get_working_dir() -> anyhow::Result<String> {
-        #[cfg(not(target_os = "windows"))]{
+        #[cfg(not(target_os = "windows"))]
+        {
             use std::env;
             return Ok(env::current_dir()?.display().to_string());
         }
@@ -151,14 +166,24 @@ impl Utils {
         info!("Taking screenshot...");
         let screens = Screen::all();
 
-        if screens.is_empty() { return Err(anyhow!("Screen is empty")); }
+        if screens.is_empty() {
+            return Err(anyhow!("Screen is empty"));
+        }
 
-        let image = screens.get(0).context("Could not find screens")?.capture().context("Image is empty")?;
+        let image = screens
+            .get(0)
+            .context("Could not find screens")?
+            .capture()
+            .context("Image is empty")?;
         let buffer = image.buffer();
 
         // Save the image.
         let mut rng = rand::thread_rng();
-        let savepath = format!("{}/image{}.png", Utils::get_working_dir()?, rng.gen::<i32>());
+        let savepath = format!(
+            "{}/image{}.png",
+            Utils::get_working_dir()?,
+            rng.gen::<i32>()
+        );
         fs::write(&savepath, &buffer)?;
 
         Ok(savepath)
@@ -168,8 +193,7 @@ impl Utils {
         let path = Utils::screenshot()?;
         let info = ImgurClient::new("3e3ce0d7ac14d56")
             .upload_image(&path)
-            .await
-            ?;
+            .await?;
 
         Ok(info.data.link)
     }

@@ -25,23 +25,24 @@ pub const TCP_BACKUP_PORT: u32 = 3217;
 
 #[tokio::main]
 async fn main() {
-            
     // init logger
     logger::init();
 
     println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
-    
+
     let args: Vec<String> = env::args().collect();
-    match args.iter().any(|v| v == "--update"){
+    match args.iter().any(|v| v == "--update") {
         true => {
             let possision = args.iter().position(|r| r == "--update").unwrap();
-            Utils::update(&args[possision+1].to_string()).await.expect("Error updating");
-        },
-        false => ()
+            Utils::update(&args[possision + 1].to_string())
+                .await
+                .expect("Error updating");
+        }
+        false => (),
     }
-    match Utils::check_updates().await{
-    Ok(_) => info!("Updates has been checked"),
-    Err(e) => error!("Failed to check updates: {e}"),
+    match Utils::check_updates().await {
+        Ok(_) => info!("Updates has been checked"),
+        Err(e) => error!("Failed to check updates: {e}"),
     }
 
     // get tcp server ip address from the api
