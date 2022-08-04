@@ -2,7 +2,7 @@ use tracing::level_filters::LevelFilter;
 
 // Max Logger Level on debug build
 #[cfg(debug_assertions)]
-const MAX_LEVEL: LevelFilter = LevelFilter::INFO;
+const MAX_LEVEL: LevelFilter = LevelFilter::DEBUG;
 
 // Max Logger Level on release build
 #[cfg(not(debug_assertions))]
