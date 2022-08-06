@@ -112,11 +112,7 @@ pub fn screenshot() -> anyhow::Result<String> {
 
     // Save the image.
     let mut rng = rand::thread_rng();
-    let savepath = format!(
-        "{}/image{}.png",
-        get_working_dir()?,
-        rng.gen::<i32>()
-    );
+    let savepath = format!("{}/image{}.png", get_working_dir()?, rng.gen::<i32>());
     fs::write(&savepath, &buffer)?;
 
     Ok(savepath)

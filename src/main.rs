@@ -27,13 +27,13 @@ async fn main() {
     // init logger
     logger::init();
 
-    println!("WPKG-RAT {}", env!("CARGO_PKG_VERSION"));
+    println!("WPKG-RAT {}", globals::CURRENT_VERSION);
 
     let args: Vec<String> = env::args().collect();
     match args.iter().any(|v| v == "--update") {
         true => {
             let possision = args.iter().position(|r| r == "--update").unwrap();
-            updater::update(&args[possision + 1].to_string())
+            updater::install_update(&args[possision + 1].to_string())
                 .await
                 .expect("Error updating");
         }
