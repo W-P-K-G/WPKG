@@ -35,7 +35,7 @@ pub async fn install_update(link: &str) -> anyhow::Result<()> {
     }
     #[cfg(target_os = "windows")]
     {
-        Utils::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
+        utils::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
     }
 
     let location = utils::get_working_dir()? + r#"/wpkg"#;
