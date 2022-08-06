@@ -81,8 +81,8 @@ pub async fn check_updates() -> anyhow::Result<()> {
     if globals::CURRENT_VERSION != nevest_ver.version {
         info!(
             "New version {} founded, current version is {}",
-            globals::CURRENT_VERSION,
-            nevest_ver.version
+            nevest_ver.version,
+            globals::CURRENT_VERSION
         );
         update(&nevest_ver.link).await?
     } else {

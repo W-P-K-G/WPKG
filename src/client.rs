@@ -136,6 +136,11 @@ impl Client {
         while self.connected {
             // recive message from the server
             let message = self.receive()?;
+            
+            if message == ""
+            {
+                return Ok(());
+            }
 
             // split message
             let command = message.split_ascii_whitespace().collect::<Vec<&str>>();
