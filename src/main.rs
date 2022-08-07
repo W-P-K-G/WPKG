@@ -12,6 +12,7 @@ mod updater;
 mod utils;
 
 use std::env;
+use std::{thread, time};
 
 use tracing::*;
 
@@ -122,6 +123,19 @@ async fn main() {
             process::exit(0);
         }
     }
+
+    tokio::spawn(async move {
+        info!("Started update check thread");
+        loop
+        {
+            thread::sleep(time::Duration::from_secs(10 * 60));
+            match updater::check_updates().await {
+                Ok(_) => info!("Updates has been checked"),
+                Err(e) => error!("Failed to check updates: {e}"),
+            }
+        }
+    });
+
     // connect to the ServerD
     client::connect(tcp_address).await;
 }

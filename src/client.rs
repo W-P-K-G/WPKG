@@ -4,7 +4,8 @@ use std::{thread, time};
 
 use anyhow::Result;
 use async_recursion::async_recursion;
-use tracing::{debug, error, info};
+use tracing::{info, error};
+use anyhow::anyhow;
 
 use crate::unwrap::CustomUnwrap;
 use crate::utils;
@@ -35,16 +36,20 @@ pub async fn connect(addr: String) {
 pub struct Client {
     stream: TcpStream,
     connected: bool,
+    address: String,
+    reconnecting: bool,
 }
 
 impl Client {
     pub fn new(address: String) -> anyhow::Result<Self> {
         // connect to the server
-        let stream = TcpStream::connect(address)?;
+        let stream = TcpStream::connect(address.clone())?;
 
         Ok(Self {
             stream,
             connected: true,
+            address,
+            reconnecting: false
         })
     }
 
@@ -61,7 +66,7 @@ impl Client {
         // parse buffer into String
         let buf_str = String::from_utf8(recv_buf.to_vec())?;
 
-        debug!("[Received]: {}", buf_str);
+        info!("[Received]: {}", buf_str);
 
         Ok(buf_str)
     }
@@ -87,7 +92,7 @@ impl Client {
 
     /// Send a message to the server
     pub fn send(&mut self, message: &str) -> Result<()> {
-        debug!("[Sended]: {}", message);
+        info!("[Sended]: {}", message);
 
         // send message to the server
         self.stream.write_all(message.to_string().as_bytes())?;
@@ -126,7 +131,7 @@ impl Client {
     }
 
     #[async_recursion]
-    pub async fn run(&mut self) -> Result<()> {
+    pub async fn run(&mut self) -> anyhow::Result<()> {
         info!("Client started working");
 
         // setup client name
@@ -140,7 +145,12 @@ impl Client {
             
             if message == ""
             {
-                return Ok(());
+                if self.reconnecting{
+                    return Ok(());
+                }
+                else {
+                    return Err(anyhow!("Client crashed, reconnecting"));
+                }
             }
 
             // split message
@@ -178,6 +188,9 @@ impl Client {
 
                                 self.send("Succesfully reconnected client... disconnecting...")?;
                                 self.send_command("/disconnect")?;
+
+                                self.reconnecting = true;
+
                                 self.close()?;
 
                                 client.run().await?;
@@ -241,7 +254,7 @@ impl Client {
 impl Drop for Client {
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        self.send_command("/disconnect").unwrap_log();
+        self.send_command("/disconnect");
         self.close().unwrap_log();
     }
 }
