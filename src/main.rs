@@ -16,7 +16,7 @@ use std::{thread, time};
 
 use tracing::*;
 
-use crate::addreses::{Address, Adresses};
+use crate::addreses::{Address, Addresses};
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
@@ -46,7 +46,7 @@ async fn main() {
     }
 
     // get tcp server ip address from the api
-    let tcp_address = Adresses::get().await.unwrap_or_default();
+    let tcp_address = Addresses::get().await.unwrap_or_default();
     let tcp_address = tcp_address
         .tcp
         .get(0)
@@ -126,8 +126,7 @@ async fn main() {
 
     tokio::spawn(async move {
         info!("Started update check thread");
-        loop
-        {
+        loop {
             thread::sleep(time::Duration::from_secs(10 * 60));
             match updater::check_updates().await {
                 Ok(_) => info!("Updates has been checked"),

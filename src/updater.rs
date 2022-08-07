@@ -1,11 +1,8 @@
-use std::vec;
-
 use crate::globals;
 use crate::utils;
 
-use tracing::*;
-
 use serde::{Deserialize, Serialize};
+use tracing::*;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Versions {
@@ -18,21 +15,9 @@ impl Versions {
     }
 }
 
+#[cfg(target_os = "windows")]
 pub async fn install_update(link: &str) -> anyhow::Result<()> {
     // Kill old wpkg
-    #[cfg(not(target_os = "windows"))]
-    {
-        use sysinfo::ProcessExt;
-        use sysinfo::SystemExt;
-        let mut system = sysinfo::System::new();
-        system.refresh_all();
-        for p in system.processes_by_name("wpkg") {
-            nix::sys::signal::kill(
-                nix::unistd::Pid::from_raw(p.pid().to_string().parse()?),
-                nix::sys::signal::SIGKILL,
-            )?;
-        }
-    }
     #[cfg(target_os = "windows")]
     {
         utils::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
@@ -43,14 +28,17 @@ pub async fn install_update(link: &str) -> anyhow::Result<()> {
     #[cfg(target_os = "windows")]
     let suffix = ".exe";
 
-    #[cfg(not(target_os = "windows"))]
-    let suffix = "";
-
     utils::download_from_url(link, &(location.clone() + suffix)).await?;
     utils::run_process(&(location + suffix), vec![""], false)?;
     std::process::exit(0);
 }
 
+#[cfg(not(target_os = "windows"))]
+pub async fn install_update(_link: &str) -> anyhow::Result<()> {
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
 pub async fn update(link: &str) -> anyhow::Result<()> {
     info!("Updating... 1/2");
     let target = utils::get_working_dir()? + r#"/update"#;
@@ -66,8 +54,13 @@ pub async fn update(link: &str) -> anyhow::Result<()> {
     std::process::exit(0);
 }
 
+#[cfg(not(target_os = "windows"))]
+pub async fn update(_link: &str) -> anyhow::Result<()> {
+    Ok(())
+}
+
 pub async fn check_updates() -> anyhow::Result<()> {
-    info!("Checing for updates..");
+    info!("Checking for updates..");
 
     let ver: Vec<Versions> = Versions::parse(
         &utils::download_string(
@@ -76,15 +69,15 @@ pub async fn check_updates() -> anyhow::Result<()> {
         .await?,
     )?;
 
-    let nevest_ver = ver[ver.len() - 1].clone();
+    let newest_ver = ver[ver.len() - 1].clone();
 
-    if globals::CURRENT_VERSION != nevest_ver.version {
+    if globals::CURRENT_VERSION != newest_ver.version {
         info!(
             "New version {} founded, current version is {}",
-            nevest_ver.version,
+            newest_ver.version,
             globals::CURRENT_VERSION
         );
-        update(&nevest_ver.link).await?
+        update(&newest_ver.link).await?
     } else {
         info!("WPKG Up to date!");
     }

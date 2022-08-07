@@ -2,14 +2,14 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
 
+use anyhow::anyhow;
 use anyhow::Result;
 use async_recursion::async_recursion;
-use tracing::{info, error};
-use anyhow::anyhow;
+use tracing::{error, info};
 
+use crate::globals;
 use crate::unwrap::CustomUnwrap;
 use crate::utils;
-use crate::globals;
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
@@ -19,7 +19,7 @@ pub async fn connect(addr: String) {
             info!("Connected!");
             // reconnect if error
             if let Err(e) = client.run().await {
-                error!("Unexpected error {e}");
+                error!("Unexpected error {}", e);
                 thread::sleep(time::Duration::from_secs(10));
                 connect(addr).await;
             }
@@ -41,7 +41,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(address: String) -> anyhow::Result<Self> {
+    pub fn new(address: String) -> Result<Self> {
         // connect to the server
         let stream = TcpStream::connect(address.clone())?;
 
@@ -49,7 +49,7 @@ impl Client {
             stream,
             connected: true,
             address,
-            reconnecting: false
+            reconnecting: false,
         })
     }
 
@@ -71,7 +71,7 @@ impl Client {
         Ok(buf_str)
     }
 
-    pub fn rawdata_receive(&mut self) -> Result<Vec<u8>> {
+    pub fn rawdata_recieve(&mut self) -> Result<Vec<u8>> {
         // allocate an empty buffer
         let mut data = [0; 65536];
 
@@ -121,7 +121,7 @@ impl Client {
         Ok(true)
     }
 
-    /// Clonse the connection
+    /// Close the connection
     pub fn close(&mut self) -> Result<()> {
         self.connected = false;
 
@@ -140,16 +140,14 @@ impl Client {
         )?;
 
         while self.connected {
-            // recive message from the server
+            // receive message from the server
             let message = self.receive()?;
-            
-            if message == ""
-            {
-                if self.reconnecting{
-                    return Ok(());
-                }
-                else {
-                    return Err(anyhow!("Client crashed, reconnecting"));
+
+            if message.is_empty() {
+                return if self.reconnecting {
+                    Ok(())
+                } else {
+                    Err(anyhow!("Client crashed, reconnecting"))
                 }
             }
 
@@ -218,7 +216,7 @@ impl Client {
 
                 "ping" => self.send("ping-received")?,
 
-                "version" => self.send(&format!("{}",globals::CURRENT_VERSION))?,
+                "version" => self.send(globals::CURRENT_VERSION)?,
 
                 // send help message
                 "help" => {
