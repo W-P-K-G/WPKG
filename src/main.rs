@@ -28,11 +28,6 @@ async fn main() {
     // init logger
     logger::init();
 
-    println!(
-        "{:?}",
-        "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Addreses.json".as_bytes()
-    );
-
     println!("WPKG-RAT {}", globals::CURRENT_VERSION);
 
     let args: Vec<String> = env::args().collect();

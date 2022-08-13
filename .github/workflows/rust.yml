@@ -32,7 +32,7 @@ jobs:
         path: |
           ~/.cargo/registry/cache/
           target/
-        key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}
+        key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-1
 
     - name: Build
       run: cargo build --release
