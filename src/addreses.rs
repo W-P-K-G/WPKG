@@ -36,7 +36,7 @@ impl Addresses {
     }
 
     pub async fn get() -> anyhow::Result<Self> {
-        let res = reqwest::get(JSON_ADDRESSES_URL).await?;
+        let res = reqwest::get(String::from_utf8(JSON_ADDRESSES_URL.to_vec())?).await?;
 
         // get response http code
         let status = res.status();
