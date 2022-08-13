@@ -1,4 +1,5 @@
 use crate::globals;
+use crate::globals::UPDATER_URL;
 use crate::utils;
 
 use serde::{Deserialize, Serialize};
@@ -62,12 +63,8 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
 pub async fn check_updates() -> anyhow::Result<()> {
     info!("Checking for updates..");
 
-    let ver: Vec<Versions> = Versions::parse(
-        &utils::download_string(
-            "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Versions.json",
-        )
-        .await?,
-    )?;
+    let ver: Vec<Versions> =
+        Versions::parse(&utils::download_string(&String::from_utf8(UPDATER_URL.to_vec())?).await?)?;
 
     let newest_ver = ver[ver.len() - 1].clone();
 
