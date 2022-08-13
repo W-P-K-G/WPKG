@@ -1,6 +1,8 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::{thread, time};
+use std::time::{Duration, SystemTime};
+use std::sync::{Arc, Mutex};
 
 use anyhow::anyhow;
 use anyhow::Result;
@@ -121,6 +123,32 @@ impl Client {
         Ok(true)
     }
 
+    //detecting computer suspend and reconnecting
+    fn suspend_handler(&mut self) -> anyhow::Result<()> {
+        let arc_connected = Arc::new(Mutex::new(self.connected));
+        let tcp_stream = self.stream.try_clone()?;
+
+        thread::spawn(move || {
+            info!("Starting suspend detecting system...");
+
+            while *Arc::clone(&arc_connected).lock().unwrap() {
+                let time: u64 = 1;
+
+                let before = SystemTime::now();
+                thread::sleep(Duration::from_secs(time));
+                let now = before.elapsed().unwrap();
+
+                if now.as_secs() > time {
+                    info!("Suspend detected... Reconnecting...");
+                    tcp_stream.shutdown(std::net::Shutdown::Both).unwrap_log();
+                    return;
+                }
+            }
+        });
+
+        Ok(())
+    }
+
     /// Close the connection
     pub fn close(&mut self) -> Result<()> {
         self.connected = false;
@@ -134,10 +162,15 @@ impl Client {
     pub async fn run(&mut self) -> anyhow::Result<()> {
         info!("Client started working");
 
+        self.suspend_handler()?;
+
         // setup client name
         self.send_command(
             format!("/setname {}@{}", whoami::username(), whoami::hostname()).as_str(),
         )?;
+
+        //setting version in server
+        self.send_command(format!("/about {}",globals::CURRENT_VERSION).as_str())?;
 
         while self.connected {
             // receive message from the server
