@@ -20,9 +20,8 @@ jobs:
     - name: Build
       run: cargo build --release
 
-    - name: Upload
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: release
-          path: target/release/wpkg.exe
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release
+        path: target/release/wpkg.exe
