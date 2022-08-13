@@ -17,9 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build
-      run: cargo build --release
-
     - name: Setup Rust toolchain
       id: rust-toolchain
       uses: actions-rs/toolchain@v1
@@ -36,6 +33,9 @@ jobs:
           ~/.cargo/registry/cache/
           target/
         key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}
+
+    - name: Build
+      run: cargo build --release
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
