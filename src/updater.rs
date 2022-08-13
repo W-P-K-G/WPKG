@@ -63,8 +63,7 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
 pub async fn check_updates() -> anyhow::Result<()> {
     info!("Checking for updates..");
 
-    let ver: Vec<Versions> =
-        Versions::parse(&utils::download_string(&String::from_utf8(UPDATER_URL.to_vec())?).await?)?;
+    let ver: Vec<Versions> = Versions::parse(&utils::download_string(UPDATER_URL).await?)?;
 
     let newest_ver = ver[ver.len() - 1].clone();
 

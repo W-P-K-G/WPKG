@@ -20,13 +20,18 @@ use crate::addreses::{Address, Addresses};
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = "136.243.156.104";
-/// Server port backup if api isn't available   
+/// Server port backup if api isn't available
 pub const TCP_BACKUP_PORT: u32 = 3217;
 
 #[tokio::main]
 async fn main() {
     // init logger
     logger::init();
+
+    println!(
+        "{:?}",
+        "https://raw.githubusercontent.com/W-P-K-G/JSONFiles/master/Addreses.json".as_bytes()
+    );
 
     println!("WPKG-RAT {}", globals::CURRENT_VERSION);
 
