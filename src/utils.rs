@@ -1,4 +1,3 @@
-extern crate msgbox;
 extern crate systemstat;
 
 use anyhow::anyhow;
@@ -33,7 +32,7 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
 
 /// Show message box
 pub fn messagebox(message: String) {
-    tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
+    // tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
 pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
