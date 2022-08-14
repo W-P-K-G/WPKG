@@ -11,7 +11,6 @@ use std::thread;
 use std::time::Duration;
 
 use imgurs::ImgurClient;
-use msgbox::*;
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
