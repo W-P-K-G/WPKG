@@ -36,8 +36,7 @@ pub fn messagebox(message: String) {
     tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
-pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> 
-{
+pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
     if wait {
         Command::new(exe).args(args).output()?;
     } else {
@@ -47,7 +46,6 @@ pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Resul
 }
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-
     let mut full_command: Vec<&str> = vec![];
 
     #[cfg(target_os = "windows")]
@@ -61,7 +59,15 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
         full_command.push(arg);
     }
 
+<<<<<<< HEAD
     run_process_real(full_command[0],full_command[1..full_command.len()].to_vec(),wait)?;
+=======
+    run_process_real(
+        &full_command[0],
+        full_command[1..full_command.len()].to_vec(),
+        wait,
+    )?;
+>>>>>>> 3834c668416f057a3d35c0c1e4a28efed62a6b44
     Ok(())
 }
 
@@ -71,6 +77,7 @@ pub fn run_process_with_work_dir(
     wait: bool,
     current_dir: &str,
 ) -> anyhow::Result<()> {
+<<<<<<< HEAD
 
     let mut full_command: Vec<&str> = vec![];
 
@@ -85,6 +92,8 @@ pub fn run_process_with_work_dir(
         full_command.push(arg);
     }
 
+=======
+>>>>>>> 3834c668416f057a3d35c0c1e4a28efed62a6b44
     if wait {
         Command::new(full_command[0])
             .args(full_command[1..full_command.len()].to_vec())
@@ -125,7 +134,7 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 
 pub fn screenshot() -> anyhow::Result<String> {
     info!("Taking screenshot...");
-    let screens = Screen::all();
+    let screens = Screen::all().ok_or(anyhow!("Can't take screenshot!"))?;
 
     if screens.is_empty() {
         return Err(anyhow!("Screen is empty"));
