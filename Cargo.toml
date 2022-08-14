@@ -1,6 +1,6 @@
 [package]
 name = "wpkg"
-version = "0.0.6"
+version = "0.0.6-1"
 edition = "2021"
 build = "build.rs"
 
