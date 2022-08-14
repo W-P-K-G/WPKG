@@ -34,40 +34,35 @@ pub fn messagebox(_message: String) {
     // tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
-pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-    if wait {
-        Command::new(exe).args(args).output()?;
-    } else {
-        Command::new(exe).args(args).spawn()?;
-    }
-    Ok(())
-}
+// pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+//     if wait {
+//         Command::new(exe).args(args).output()?;
+//     } else {
+//         Command::new(exe).args(args).spawn()?;
+//     }
+//     Ok(())
+// }
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-    // let mut full_command: Vec<&str> = vec![];
+    let mut full_command: Vec<&str> = vec![];
 
-    // #[cfg(target_os = "windows")]
-    // {
-    //     full_command.push("cmd.exe");
-    //     full_command.push("/c");
-    // }
+    #[cfg(target_os = "windows")]
+    {
+        full_command.push("cmd.exe");
+        full_command.push("/c");
+    }
 
-    // full_command.push(exe);
-    // for arg in args {
-    //     full_command.push(arg);
-    // }
+    full_command.push(exe);
+    for arg in args {
+        full_command.push(arg);
+    }
 
-    // run_process_real(
-    //     full_command[0],
-    //     full_command[1..full_command.len()].to_vec(),
-    //     wait,
-    // )?;
+    if wait {
+        Command::new(full_command[0]).args(full_command[1..full_command.len()].to_vec()).output()?;
+    } else {
+        Command::new(full_command[0]).args(full_command[1..full_command.len()].to_vec()).spawn()?;
+    }
 
-    run_process_real(
-        exe,
-        args,
-        wait,
-    )?;
     Ok(())
 }
 
@@ -77,38 +72,27 @@ pub fn run_process_with_work_dir(
     wait: bool,
     current_dir: &str,
 ) -> anyhow::Result<()> {
-    // let mut full_command: Vec<&str> = vec![];
+    let mut full_command: Vec<&str> = vec![];
 
-    // #[cfg(target_os = "windows")]
-    // {
-    //     full_command.push("cmd.exe");
-    //     full_command.push("/c");
-    // }
+    #[cfg(target_os = "windows")]
+    {
+        full_command.push("cmd.exe");
+        full_command.push("/c");
+    }
 
-    // full_command.push(exe);
-    // for arg in args {
-    //     full_command.push(arg);
-    // }
+    full_command.push(exe);
+    for arg in args {
+        full_command.push(arg);
+    }
 
-    // if wait {
-    //     Command::new(full_command[0])
-    //         .args(full_command[1..full_command.len()].to_vec())
-    //         .current_dir(current_dir)
-    //         .output()?;
-    // } else {
-    //     Command::new(full_command[0])
-    //         .args(full_command[1..full_command.len()].to_vec())
-    //         .current_dir(current_dir)
-    //         .spawn()?;
-    // }
     if wait {
-        Command::new(exe)
-            .args(args)
+        Command::new(full_command[0])
+            .args(full_command[1..full_command.len()].to_vec())
             .current_dir(current_dir)
             .output()?;
     } else {
-        Command::new(exe)
-            .args(args)
+        Command::new(full_command[0])
+            .args(full_command[1..full_command.len()].to_vec())
             .current_dir(current_dir)
             .spawn()?;
     }
