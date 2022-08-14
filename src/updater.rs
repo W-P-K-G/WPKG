@@ -18,11 +18,11 @@ impl Versions {
 
 #[cfg(target_os = "windows")]
 pub async fn install_update(link: &str) -> anyhow::Result<()> {
-    // Kill old wpkg
-    #[cfg(target_os = "windows")]
-    {
-        utils::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
-    }
+    // // Kill old wpkg
+    // #[cfg(target_os = "windows")]
+    // {
+    //     utils::run_process("taskkill.exe", vec!["/f", "/im", "wpkg.exe"], true)?;
+    // }
 
     let location = utils::get_working_dir()? + r#"/wpkg"#;
     info!("Updating... 2/2");
