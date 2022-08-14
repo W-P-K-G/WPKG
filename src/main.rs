@@ -82,7 +82,7 @@ async fn main() {
                     //adding to autostart
                     info!("Adding to autostart");
                     utils::run_process(
-                        "reg.exe",
+                        "reg",
                         vec![
                             "add",
                             "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
