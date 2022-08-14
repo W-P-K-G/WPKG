@@ -207,7 +207,8 @@ impl Client {
                     if args.clone().is_empty() {
                         self.send("Missing argument")?;
                     } else {
-                        utils::run_process(args[0], vec![args[1]], false)?;
+                        let a = if args.len() <= 1 { vec![""] } else { args[1..args.len()].to_vec() };
+                        utils::run_process(args[0], a, false)?;
                         self.send("Done")?;
                     }
                 }

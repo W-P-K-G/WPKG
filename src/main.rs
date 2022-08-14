@@ -108,7 +108,7 @@ async fn main() {
                 //run wpkg
                 if runned <= 1 {
                     info!("Running WPKG...");
-                    utils::run_process_with_work_dir(&exe_target, "", false, &config_dir)?;
+                    utils::run_process_with_work_dir(&exe_target, vec![""], false, &config_dir)?;
                 } else {
                     error!("WPKG is runned. Exiting...");
                 }
