@@ -30,7 +30,7 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
 }
 
 /// Show message box
-pub fn messagebox(message: String) {
+pub fn messagebox(_message: String) {
     // tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
