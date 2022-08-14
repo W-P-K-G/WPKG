@@ -91,7 +91,7 @@ pub fn run_process_with_work_dir(
             .current_dir(current_dir)
             .output()?;
     } else {
-        Command::new()
+        Command::new(full_command[0])
             .args(full_command[1..full_command.len()].to_vec())
             .current_dir(current_dir)
             .spawn()?;
