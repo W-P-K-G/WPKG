@@ -36,12 +36,32 @@ pub fn messagebox(message: String) {
     tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
 }
 
-pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> 
+{
     if wait {
         Command::new(exe).args(args).output()?;
     } else {
         Command::new(exe).args(args).spawn()?;
     }
+    Ok(())
+}
+
+pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+
+    let mut full_command: Vec<&str> = vec![];
+
+    #[cfg(target_os = "windows")]
+    {
+        full_command.push("cmd.exe");
+        full_command.push("/c");
+    }
+
+    full_command.push(exe);
+    for arg in args {
+        full_command.push(arg);
+    }
+
+    run_process_real(&full_command[0],full_command[1..full_command.len()].to_vec(),wait)?;
     Ok(())
 }
 
@@ -51,6 +71,7 @@ pub fn run_process_with_work_dir(
     wait: bool,
     current_dir: &str,
 ) -> anyhow::Result<()> {
+
     if wait {
         Command::new(exe)
             .args(&[args])
