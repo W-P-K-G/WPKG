@@ -34,12 +34,12 @@ jobs:
     - name: Build
       run: cargo build --release
 
-    - name: Compress binaries
-      uses: svenstaro/upx-action@v2
-      with:
-        file: target/release/wpkg.exe
-        args: --lzma
-        strip: true
+#     - name: Compress binaries
+#       uses: svenstaro/upx-action@v2
+#       with:
+#         file: target/release/wpkg.exe
+#         args: --lzma
+#         strip: true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
