@@ -55,6 +55,7 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
     {
         full_command.push("cmd.exe");
         full_command.push("/c");
+        full_command.push("start");
     }
 
     full_command.push(exe);
@@ -87,6 +88,7 @@ pub fn run_process_with_work_dir(
     {
         full_command.push("cmd.exe");
         full_command.push("/c");
+        full_command.push("start");
     }
 
     full_command.push(exe);
