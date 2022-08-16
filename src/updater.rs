@@ -55,7 +55,7 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn check_updates() -> anyhow::Result<()> {
+pub async fn check_updates() -> anyhow::Result<(bool,String,String)> {
     info!("Checking for updates..");
 
     let ver: Vec<Versions> = Versions::parse(&utils::download_string(UPDATER_URL).await?)?;
@@ -68,9 +68,9 @@ pub async fn check_updates() -> anyhow::Result<()> {
             newest_ver.version,
             globals::CURRENT_VERSION
         );
-        update(&newest_ver.link).await?
+        return Ok((false,newest_ver.version,newest_ver.link));
     } else {
         info!("WPKG Up to date!");
+        return Ok((true,globals::CURRENT_VERSION.to_string(),"".to_string()));
     }
-    Ok(())
 }
