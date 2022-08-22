@@ -6,11 +6,11 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Cursor;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
-#[cfg(target_os = "windows")]
-use std::os::windows::process::CommandExt;
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
@@ -68,7 +68,7 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
     let mut command = Command::new(full_command[0]);
     command.args(full_command[1..full_command.len()].to_vec());
     #[cfg(target_os = "windows")]
-    command.creation_flags(CREATE_NO_WINDOW); 
+    command.creation_flags(CREATE_NO_WINDOW);
     if wait {
         command.output()?;
     } else {
@@ -103,7 +103,7 @@ pub fn run_process_with_work_dir(
     command.args(full_command[1..full_command.len()].to_vec());
     command.current_dir(current_dir);
     #[cfg(target_os = "windows")]
-    command.creation_flags(CREATE_NO_WINDOW); 
+    command.creation_flags(CREATE_NO_WINDOW);
 
     if wait {
         command.output()?;
@@ -139,7 +139,7 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 
 pub fn screenshot() -> anyhow::Result<String> {
     info!("Taking screenshot...");
-    let screens = Screen::all().ok_or(anyhow!("Can't take screenshot!"))?;
+    let screens = Screen::all().ok_or_else(|| anyhow!("Can't take screenshot!"))?;
 
     if screens.is_empty() {
         return Err(anyhow!("Screen is empty"));

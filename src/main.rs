@@ -41,7 +41,7 @@ async fn main() {
         false => (),
     }
     match updater::check_updates().await {
-        Ok((up_to_date,_,url)) => {
+        Ok((up_to_date, _, url)) => {
             if !up_to_date {
                 if let Err(err) = updater::update(&url).await {
                     error!("Updating failed: {err}");
@@ -58,9 +58,6 @@ async fn main() {
         .get(0)
         .unwrap_or(&Address::default())
         .format();
-
-    #[cfg(not(target_os = "windows"))]
-    warn!("RAT isn't runned on Windows. Some features may be unavailable. Use for debug only");
 
     #[cfg(target_os = "windows")]
     {

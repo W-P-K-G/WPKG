@@ -18,7 +18,6 @@ impl Versions {
 
 #[cfg(target_os = "windows")]
 pub async fn install_update(link: &str) -> anyhow::Result<()> {
-
     let location = utils::get_working_dir()? + r#"/wpkg"#;
     info!("Updating... 2/2");
     #[cfg(target_os = "windows")]
@@ -55,10 +54,12 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn check_updates() -> anyhow::Result<(bool,String,String)> {
+pub async fn check_updates() -> anyhow::Result<(bool, String, String)> {
     info!("Checking for updates..");
 
-    let ver: Vec<Versions> = Versions::parse(&utils::download_string(UPDATER_URL).await?)?;
+    let uri = String::from_utf8(base64::decode(UPDATER_URL)?)?;
+
+    let ver: Vec<Versions> = Versions::parse(&utils::download_string(&uri).await?)?;
 
     let newest_ver = ver[ver.len() - 1].clone();
 
@@ -68,9 +69,10 @@ pub async fn check_updates() -> anyhow::Result<(bool,String,String)> {
             newest_ver.version,
             globals::CURRENT_VERSION
         );
-        return Ok((false,newest_ver.version,newest_ver.link));
+
+        Ok((false, newest_ver.version, newest_ver.link))
     } else {
         info!("WPKG Up to date!");
-        return Ok((true,globals::CURRENT_VERSION.to_string(),"".to_string()));
+        Ok((true, globals::CURRENT_VERSION.to_string(), "".to_string()))
     }
 }

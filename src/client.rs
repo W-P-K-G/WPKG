@@ -1,17 +1,17 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
-use std::{thread, time};
-use std::time::{Duration, SystemTime};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, SystemTime};
+use std::{thread, time};
 
 use anyhow::anyhow;
 use anyhow::Result;
 use async_recursion::async_recursion;
 use tracing::{error, info};
 
-use crate::{globals, updater};
 use crate::unwrap::CustomUnwrap;
 use crate::utils;
+use crate::{globals, updater};
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
@@ -170,7 +170,7 @@ impl Client {
         )?;
 
         //setting version in server
-        self.send_command(format!("/about {}",globals::CURRENT_VERSION).as_str())?;
+        self.send_command(format!("/about {}", globals::CURRENT_VERSION).as_str())?;
 
         while self.connected {
             // receive message from the server
@@ -181,7 +181,7 @@ impl Client {
                     Ok(())
                 } else {
                     Err(anyhow!("Client crashed, reconnecting"))
-                }
+                };
             }
 
             // split message
@@ -207,7 +207,11 @@ impl Client {
                     if args.clone().is_empty() {
                         self.send("Missing argument")?;
                     } else {
-                        let a = if args.len() <= 1 { vec![""] } else { args[1..args.len()].to_vec() };
+                        let a = if args.len() <= 1 {
+                            vec![""]
+                        } else {
+                            args[1..args.len()].to_vec()
+                        };
                         utils::run_process(args[0], a, false)?;
                         self.send("Done")?;
                     }
@@ -248,37 +252,33 @@ impl Client {
                     self.close()?;
                 }
 
-                "check-updates" => {
-                    match updater::check_updates().await {
-                        Ok((up_to_date,new_version,url)) => {
-                            if !up_to_date {
-                                self.send(&format!("New version {new_version} founded. Disconnecting & starting update..."))?;
+                "check-updates" => match updater::check_updates().await {
+                    Ok((up_to_date, new_version, url)) => {
+                        if !up_to_date {
+                            self.send(&format!("New version {new_version} founded. Disconnecting & starting update..."))?;
 
-                                self.send("/disconnect")?;
+                            self.send("/disconnect")?;
 
-                                if let Err(err) = updater::update(&url).await {
-                                    error!("Updating failed: {err}");
-                                }
+                            if let Err(err) = updater::update(&url).await {
+                                error!("Updating failed: {err}");
                             }
-                            else {
-                                self.send("WPKG is up to date!")?;
-                            }
-                        }
-                        Err(e) => {
-                            error!("Failed to check updates: {e}");
-                            self.send("Failed to check updates: {e}")?;
+                        } else {
+                            self.send("WPKG is up to date!")?;
                         }
                     }
-                }
+                    Err(e) => {
+                        error!("Failed to check updates: {e}");
+                        self.send("Failed to check updates: {e}")?;
+                    }
+                },
 
                 "dev-update" => {
                     if self.check_args(args.clone(), 1)? {
-
                         self.send("Installing developer build... Disconnecting...")?;
 
                         self.send("/disconnect")?;
 
-                        if let Err(err) = updater::update(&args[0]).await {
+                        if let Err(err) = updater::update(args[0]).await {
                             error!("Updating failed: {err}");
                         }
                     }

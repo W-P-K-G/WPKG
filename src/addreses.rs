@@ -36,7 +36,9 @@ impl Addresses {
     }
 
     pub async fn get() -> anyhow::Result<Self> {
-        let res = reqwest::get(JSON_ADDRESSES_URL).await?;
+        let uri = String::from_utf8(base64::decode(JSON_ADDRESSES_URL)?)?;
+
+        let res = reqwest::get(uri).await?;
 
         // get response http code
         let status = res.status();
