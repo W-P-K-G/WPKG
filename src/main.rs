@@ -16,7 +16,7 @@ use std::{thread, time};
 
 use tracing::*;
 #[cfg(target_os = "windows")]
-use wpkg_macro::decode;
+use wpkg_crypto::decode;
 use wpkg_macro::encode;
 
 use crate::addreses::{Address, Addresses};

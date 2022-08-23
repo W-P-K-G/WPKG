@@ -29,7 +29,7 @@ fn encode_fn(input: TokenStream) -> Result<TokenStream, Error> {
         _ => return Err(Error::NonStringLiteral),
     };
 
-    let encoded = wpkg_crypto::encode(wpkg_crypto::KEY, &msg);
+    let encoded = wpkg_crypto::_encode(wpkg_crypto::KEY, &msg);
 
     Ok(quote! {#encoded}.into())
 }

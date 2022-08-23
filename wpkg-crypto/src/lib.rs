@@ -1,6 +1,6 @@
 pub const KEY: u8 = 3;
 
-pub fn encode(key: u8, value: &str) -> String {
+pub fn _encode(key: u8, value: &str) -> String {
     let value_bytes = value.as_bytes();
 
     let mut output = Vec::new();
@@ -59,7 +59,7 @@ mod tests {
 
         println!("Input:   {:?} ({})", value.as_bytes(), value);
 
-        let output_enc = encode(key, value);
+        let output_enc = _encode(key, value);
 
         println!("Encoded: {:?}", output_enc);
 

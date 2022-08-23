@@ -12,7 +12,9 @@ use std::process::Command;
 use std::thread;
 use std::time::Duration;
 #[cfg(target_os = "windows")]
-use wpkg_crypto::{decode, encode};
+use wpkg_crypto::decode;
+#[cfg(target_os = "windows")]
+use wpkg_macro::encode;
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
