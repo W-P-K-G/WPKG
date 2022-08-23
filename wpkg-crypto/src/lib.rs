@@ -1,4 +1,4 @@
-pub const KEY: u8 = 3;
+pub const KEY: u8 = 5;
 
 pub fn _encode(key: u8, value: &str) -> String {
     let value_bytes = value.as_bytes();
@@ -17,22 +17,10 @@ pub fn _encode(key: u8, value: &str) -> String {
 }
 
 pub fn decode(value: &str) -> String {
-    let mut output = Vec::new();
-
-    let bytes: Vec<&str> = value.split_ascii_whitespace().collect();
-
-    for byte in bytes {
-        let byte: u128 = byte.parse().unwrap();
-
-        let out = byte >> KEY;
-
-        output.push(out as u8);
-    }
-
-    String::from_utf8(output).unwrap()
+    _decode_key(KEY, value)
 }
 
-pub fn decode_key(key: u8, value: &str) -> String {
+pub fn _decode_key(key: u8, value: &str) -> String {
     let mut output = Vec::new();
 
     let bytes: Vec<&str> = value.split_ascii_whitespace().collect();
@@ -63,7 +51,7 @@ mod tests {
 
         println!("Encoded: {:?}", output_enc);
 
-        let output_dec = decode_key(key, &output_enc);
+        let output_dec = _decode_key(key, &output_enc);
 
         println!("Decoded: {:?} ({})", output_dec.as_bytes(), output_dec);
 

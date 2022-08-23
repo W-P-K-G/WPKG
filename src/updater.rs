@@ -1,6 +1,8 @@
-use crate::globals;
+#[cfg(target_os = "windows")]
+use crate::crypto;
 use crate::globals::UPDATER_URL;
 use crate::utils;
+use crate::{globals, info_crypt};
 
 use serde::{Deserialize, Serialize};
 use tracing::*;
@@ -19,13 +21,15 @@ impl Versions {
 
 #[cfg(target_os = "windows")]
 pub async fn install_update(link: &str) -> anyhow::Result<()> {
-    let location = utils::get_working_dir()? + r#"/wpkg"#;
-    info!("Updating... 2/2");
-    #[cfg(target_os = "windows")]
-    let suffix = ".exe";
+    let location = format!("{}/wpkg", utils::get_working_dir()?);
 
-    utils::download_from_url(link, &(location.clone() + suffix)).await?;
-    utils::run_process(&(location + suffix), vec![""], false)?;
+    info_crypt!("Updating... 2/2");
+
+    let suffix = crypto!(".exe");
+
+    utils::download_from_url(link, &format!("{location}{suffix}")).await?;
+    utils::run_process(&format!("{location}{suffix}"), vec![""], false)?;
+
     std::process::exit(0);
 }
 
@@ -36,14 +40,10 @@ pub async fn install_update(_link: &str) -> anyhow::Result<()> {
 
 #[cfg(target_os = "windows")]
 pub async fn update(link: &str) -> anyhow::Result<()> {
-    info!("Updating... 1/2");
-    let target = utils::get_working_dir()? + r#"/update"#;
+    info_crypt!("Updating... 1/2");
+    let target = format!("{}/update", utils::get_working_dir()?);
 
-    #[cfg(target_os = "windows")]
-    let suffix = ".exe";
-
-    #[cfg(not(target_os = "windows"))]
-    let suffix = "";
+    let suffix = crypto!(".exe");
 
     utils::download_from_url(link, &(target.clone() + suffix)).await?;
     utils::run_process(&(target + suffix), vec!["--update", link], false)?;
@@ -56,7 +56,7 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
 }
 
 pub async fn check_updates() -> anyhow::Result<(bool, String, String)> {
-    info!("Checking for updates..");
+    info_crypt!("Checking for updates..");
 
     let uri = decode(UPDATER_URL);
 
@@ -73,7 +73,7 @@ pub async fn check_updates() -> anyhow::Result<(bool, String, String)> {
 
         Ok((false, newest_ver.version, newest_ver.link))
     } else {
-        info!("WPKG Up to date!");
+        info_crypt!("WPKG Up to date!");
         Ok((true, globals::CURRENT_VERSION.to_string(), "".to_string()))
     }
 }

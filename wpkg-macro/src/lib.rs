@@ -5,6 +5,11 @@ use syn::spanned::Spanned;
 use thiserror::Error;
 use wpkg_crypto::decode;
 
+const INFO_COLOR: &str = "\u{001B}[33m";
+const PURPLE: &str = "\u{001B}[35m";
+const CYAN: &str = "\u{001B}[30m";
+const RESET: &str = "\u{001B}[0m";
+
 #[proc_macro]
 pub fn encode(input: TokenStream) -> TokenStream {
     encode_fn(input.clone()).unwrap_or_else(|e| {
@@ -34,6 +39,15 @@ fn encode_fn(input: TokenStream) -> Result<TokenStream, Error> {
 
     // check if it is possible to decode
     assert_eq!(msg, decode(&encoded));
+
+    println!(
+        "{INFO_COLOR}INFO{RESET} {PURPLE}INPUT{RESET}:  {CYAN}{}{RESET}",
+        msg
+    );
+    println!(
+        "{INFO_COLOR}INFO{RESET} {PURPLE}OUTPUT{RESET}: {CYAN}{}{RESET}",
+        encoded
+    );
 
     Ok(quote! {#encoded}.into())
 }
