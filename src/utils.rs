@@ -90,7 +90,7 @@ pub fn run_process_with_work_dir(
     wait: bool,
     current_dir: &str,
 ) -> anyhow::Result<()> {
-    let mut full_command: Vec<&str> = vec![];
+    let mut full_command: Vec<String> = vec![];
 
     #[cfg(target_os = "windows")]
     {
@@ -101,11 +101,11 @@ pub fn run_process_with_work_dir(
         }
     }
 
-    full_command.push(exe);
+    full_command.push(exe.to_string());
     for arg in args {
-        full_command.push(arg);
+        full_command.push(arg.to_string());
     }
-    let mut command = Command::new(full_command[0]);
+    let mut command = Command::new(full_command[0].clone());
     command.args(full_command[1..full_command.len()].to_vec());
     command.current_dir(current_dir);
     #[cfg(target_os = "windows")]
