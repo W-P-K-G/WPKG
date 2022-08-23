@@ -32,6 +32,8 @@ imgurs = "0.8.1"
 async-recursion = "1.0.0"
 wpkg-macro = { path = "./wpkg-macro" }
 wpkg-crypto = { path = "./wpkg-crypto" }
+async-trait = "0.1.57"
+lazy_static = "1.4.0"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

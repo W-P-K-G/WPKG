@@ -2691,8 +2691,10 @@ version = "0.0.6-5"
 dependencies = [
  "anyhow",
  "async-recursion 1.0.0",
+ "async-trait",
  "better-panic",
  "imgurs",
+ "lazy_static",
  "platform-dirs",
  "rand",
  "reqwest",

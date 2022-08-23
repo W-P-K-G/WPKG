@@ -1,10 +1,9 @@
 // Remove console window in Windows OS
 #![windows_subsystem = "windows"]
-// TODO: delete it
-#![allow(dead_code)]
 
 mod addreses;
 mod client;
+mod commands;
 mod globals;
 mod logger;
 mod macros;

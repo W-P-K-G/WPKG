@@ -32,10 +32,6 @@ impl Address {
 }
 
 impl Addresses {
-    pub fn parse(data: &str) -> serde_json::Result<Self> {
-        serde_json::from_str(data)
-    }
-
     pub async fn get() -> anyhow::Result<Self> {
         let uri = decode(JSON_ADDRESSES_URL);
 
