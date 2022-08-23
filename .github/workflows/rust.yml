@@ -27,9 +27,12 @@ jobs:
       id: cache
       with:
         path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
           ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
           target/
-        key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-2
+        key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-3
 
     - name: Build
       run: cargo build --release
