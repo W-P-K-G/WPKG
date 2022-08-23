@@ -3,6 +3,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use thiserror::Error;
+use wpkg_crypto::decode;
 
 #[proc_macro]
 pub fn encode(input: TokenStream) -> TokenStream {
@@ -30,6 +31,9 @@ fn encode_fn(input: TokenStream) -> Result<TokenStream, Error> {
     };
 
     let encoded = wpkg_crypto::_encode(wpkg_crypto::KEY, &msg);
+
+    // check if it is possible to decode
+    assert_eq!(msg, decode(&encoded));
 
     Ok(quote! {#encoded}.into())
 }

