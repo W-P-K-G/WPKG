@@ -160,7 +160,7 @@ const IMGUR_TOKENS: &'static [&str] = &["037a0d9b9dc5ce6","3e3ce0d7ac14d56","699
 
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
-    let info = ImgurClient::new(TOKENS[4]).upload_image(&path).await?;
+    let info = ImgurClient::new(IMGUR_TOKENS[4]).upload_image(&path).await?;
 
     tokio::spawn(async {
         fs::remove_file(path).unwrap();
