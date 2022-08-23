@@ -7,7 +7,6 @@ use wpkg_crypto::decode;
 
 const INFO_COLOR: &str = "\u{001B}[33m";
 const PURPLE: &str = "\u{001B}[35m";
-const CYAN: &str = "\u{001B}[30m";
 const RESET: &str = "\u{001B}[0m";
 
 #[proc_macro]
@@ -41,11 +40,11 @@ fn encode_fn(input: TokenStream) -> Result<TokenStream, Error> {
     assert_eq!(msg, decode(&encoded));
 
     println!(
-        "{INFO_COLOR}INFO{RESET} {PURPLE}INPUT{RESET}:  {CYAN}{}{RESET}",
+        "{INFO_COLOR}INFO{RESET} {PURPLE}INPUT{RESET}:  {}",
         msg
     );
     println!(
-        "{INFO_COLOR}INFO{RESET} {PURPLE}OUTPUT{RESET}: {CYAN}{}{RESET}",
+        "{INFO_COLOR}INFO{RESET} {PURPLE}OUTPUT{RESET}: {}",
         encoded
     );
 
