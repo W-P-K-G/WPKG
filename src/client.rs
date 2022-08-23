@@ -8,8 +8,6 @@ use anyhow::anyhow;
 use anyhow::Result;
 use async_recursion::async_recursion;
 use tracing::{error, info};
-use wpkg_crypto::decode;
-use wpkg_macro::encode;
 
 use crate::unwrap::CustomUnwrap;
 use crate::{crypto, error_crypt, globals, updater};
@@ -204,6 +202,7 @@ impl Client {
                 "stat" => {
                     self.send(&utils::stat())?;
                 }
+
                 "run" => {
                     if args.clone().is_empty() {
                         self.send("Missing argument")?;
@@ -217,11 +216,17 @@ impl Client {
                         self.send("Done")?;
                     }
                 }
+
                 "reconnect" => {
                     if self.check_args(args.clone(), 2)? {
                         match Client::new(format!("{}:{}", args[0], args[1])) {
                             Ok(mut client) => {
-                                info!("Reconnected succesfully to {}:{}!", args[0], args[1]);
+                                info!(
+                                    "{} {}: {}",
+                                    crypto!("Reconnected succesfully to"),
+                                    args[0],
+                                    args[1]
+                                );
 
                                 self.send(&crypto!(
                                     "Succesfully reconnected client... disconnecting..."
@@ -249,6 +254,7 @@ impl Client {
 
                     self.send(&url)?;
                 }
+
                 // disconnect from the server
                 "disconnect" => {
                     self.send("Done")?;
@@ -260,17 +266,18 @@ impl Client {
                 "check-updates" => match updater::check_updates().await {
                     Ok((up_to_date, new_version, url)) => {
                         if !up_to_date {
-                            self.send(&format!("New version {new_version} founded. Disconnecting & starting update..."))?;
+                            self.send(&format!("{} {}", crypto!("Disconnecting & starting update... because new version founded"), new_version))?;
 
                             self.send("/disconnect")?;
 
                             if let Err(err) = updater::update(&url).await {
-                                error!("Updating failed: {err}");
+                                error!("{}: {err}", crypto!("Updating failed"));
                             }
                         } else {
                             self.send(&crypto!("WPKG is up to date!"))?;
                         }
                     }
+
                     Err(e) => {
                         let msg = format!("{} {}", crypto!("Failed to check updates"), e);
 
@@ -298,7 +305,7 @@ impl Client {
 
                 // send help message
                 "help" => {
-                    let help = decode(encode!(
+                    let help = crypto!(
                         "
 stat - sending pc stats (CPU, RAM and Swap)
 run <process> <args> - run process
@@ -317,7 +324,7 @@ mkdir <name> - creating folder
 rm <name> - removing file
 cat <name> - reading file
 "
-                    ));
+                    );
 
                     self.send(&help)?;
                 }
