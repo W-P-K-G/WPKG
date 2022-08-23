@@ -1,5 +1,6 @@
+use wpkg_macro::encode;
+
 pub const JSON_ADDRESSES_URL: &str =
-    "aHR0cHM6Ly93cGtnLm1lZHppay53b3JrZXJzLmRldi9KU09ORmlsZXMvQWRkcmVzZXMuanNvbg==";
-pub const UPDATER_URL: &str =
-    "aHR0cHM6Ly93cGtnLm1lZHppay53b3JrZXJzLmRldi9KU09ORmlsZXMvVmVyc2lvbnMuanNvbg==";
+    encode!("https://wpkg.medzik.workers.dev/JSONFiles/Addreses.json");
+pub const UPDATER_URL: &str = encode!("https://wpkg.medzik.workers.dev/JSONFiles/Versions.json");
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");

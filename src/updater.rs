@@ -4,6 +4,7 @@ use crate::utils;
 
 use serde::{Deserialize, Serialize};
 use tracing::*;
+use wpkg_crypto::decode;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Versions {
@@ -57,7 +58,7 @@ pub async fn update(_link: &str) -> anyhow::Result<()> {
 pub async fn check_updates() -> anyhow::Result<(bool, String, String)> {
     info!("Checking for updates..");
 
-    let uri = String::from_utf8(base64::decode(UPDATER_URL)?)?;
+    let uri = decode(UPDATER_URL);
 
     let ver: Vec<Versions> = Versions::parse(&utils::download_string(&uri).await?)?;
 

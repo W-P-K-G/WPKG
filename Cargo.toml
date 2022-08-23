@@ -1,3 +1,7 @@
+[workspace]
+members = ["wpkg-macro", "wpkg-crypto"]
+resolver = "2"
+
 [package]
 name = "wpkg"
 version = "0.0.6-5"
@@ -26,7 +30,8 @@ screenshots = "0.4.3"
 rand = "0.8.5"
 imgurs = "0.8.1"
 async-recursion = "1.0.0"
-base64 = "0.13.0"
+wpkg-macro = { path = "./wpkg-macro" }
+wpkg-crypto = { path = "./wpkg-crypto" }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

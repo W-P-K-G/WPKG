@@ -2691,7 +2691,6 @@ version = "0.0.6-5"
 dependencies = [
  "anyhow",
  "async-recursion 1.0.0",
- "base64",
  "better-panic",
  "imgurs",
  "platform-dirs",
@@ -2707,6 +2706,23 @@ dependencies = [
  "tracing-subscriber",
  "whoami",
  "winres",
+ "wpkg-crypto",
+ "wpkg-macro",
+]
+
+[[package]]
+name = "wpkg-crypto"
+version = "0.1.0"
+
+[[package]]
+name = "wpkg-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "thiserror",
+ "wpkg-crypto",
 ]
 
 [[package]]

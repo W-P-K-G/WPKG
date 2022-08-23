@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
+use wpkg_crypto::decode;
 
 use crate::{globals::JSON_ADDRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 
@@ -18,7 +19,7 @@ pub struct Address {
 impl Default for Address {
     fn default() -> Self {
         Self {
-            ip: TCP_BACKUP_IP.to_string(),
+            ip: decode(TCP_BACKUP_IP),
             port: TCP_BACKUP_PORT,
         }
     }
@@ -36,7 +37,7 @@ impl Addresses {
     }
 
     pub async fn get() -> anyhow::Result<Self> {
-        let uri = String::from_utf8(base64::decode(JSON_ADDRESSES_URL)?)?;
+        let uri = decode(JSON_ADDRESSES_URL);
 
         let res = reqwest::get(uri).await?;
 

@@ -11,6 +11,8 @@ use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
+#[cfg(target_os = "windows")]
+use wpkg_crypto::{decode, encode};
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
@@ -49,26 +51,28 @@ pub fn messagebox(_message: String) {
 // }
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-    let mut full_command: Vec<&str> = vec![];
+    let mut full_command: Vec<String> = vec![];
 
     #[cfg(target_os = "windows")]
     {
-        full_command.push("cmd.exe");
-        full_command.push("/c");
+        full_command.push(decode(encode!("cmd.exe")));
+        full_command.push(decode(encode!("/c")));
         if !wait {
-            full_command.push("start");
+            full_command.push(decode(encode!("start")));
         }
     }
 
-    full_command.push(exe);
+    full_command.push(exe.to_owned());
     for arg in args {
-        full_command.push(arg);
+        full_command.push(arg.to_owned());
     }
 
-    let mut command = Command::new(full_command[0]);
+    let mut command = Command::new(full_command[0].clone());
     command.args(full_command[1..full_command.len()].to_vec());
+
     #[cfg(target_os = "windows")]
     command.creation_flags(CREATE_NO_WINDOW);
+
     if wait {
         command.output()?;
     } else {

