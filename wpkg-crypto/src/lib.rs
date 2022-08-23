@@ -1,4 +1,6 @@
-pub const KEY: u8 = 5;
+use wpkg_rand::rand;
+
+pub const KEY: u8 = rand!();
 
 pub fn _encode(key: u8, value: &str) -> String {
     let value_bytes = value.as_bytes();
@@ -26,7 +28,7 @@ pub fn _decode_key(key: u8, value: &str) -> String {
     let bytes: Vec<&str> = value.split_ascii_whitespace().collect();
 
     for byte in bytes {
-        let byte: u128 = byte.parse().unwrap();
+        let byte: usize = byte.parse().unwrap();
 
         let out = byte >> key;
 

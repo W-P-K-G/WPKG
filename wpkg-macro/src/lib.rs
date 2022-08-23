@@ -39,13 +39,12 @@ fn encode_fn(input: TokenStream) -> Result<TokenStream, Error> {
     // check if it is possible to decode
     assert_eq!(msg, decode(&encoded));
 
+    println!("{INFO_COLOR}INFO{RESET} {PURPLE}INPUT{RESET}:  {}", msg);
+    println!("{INFO_COLOR}INFO{RESET} {PURPLE}OUTPUT{RESET}: {}", encoded);
+
     println!(
-        "{INFO_COLOR}INFO{RESET} {PURPLE}INPUT{RESET}:  {}",
-        msg
-    );
-    println!(
-        "{INFO_COLOR}INFO{RESET} {PURPLE}OUTPUT{RESET}: {}",
-        encoded
+        "{INFO_COLOR}INFO{RESET} {PURPLE}KEY{RESET}:   {}",
+        wpkg_crypto::KEY
     );
 
     Ok(quote! {#encoded}.into())

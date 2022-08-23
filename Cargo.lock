@@ -2712,7 +2712,10 @@ dependencies = [
 
 [[package]]
 name = "wpkg-crypto"
-version = "0.1.0"
+version = "0.0.0"
+dependencies = [
+ "wpkg-rand",
+]
 
 [[package]]
 name = "wpkg-macro"
@@ -2723,6 +2726,14 @@ dependencies = [
  "syn",
  "thiserror",
  "wpkg-crypto",
+]
+
+[[package]]
+name = "wpkg-rand"
+version = "0.0.0"
+dependencies = [
+ "quote",
+ "rand",
 ]
 
 [[package]]

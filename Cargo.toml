@@ -1,5 +1,5 @@
 [workspace]
-members = ["wpkg-macro", "wpkg-crypto"]
+members = ["wpkg-macro", "wpkg-crypto", "wpkg-crypto/wpkg-rand"]
 resolver = "2"
 
 [package]
