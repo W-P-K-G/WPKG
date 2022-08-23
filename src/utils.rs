@@ -164,9 +164,11 @@ pub fn screenshot() -> anyhow::Result<String> {
     Ok(save_path)
 }
 
+const TOKENS: &'static [&str] = &["037a0d9b9dc5ce6","3e3ce0d7ac14d56"];
+
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
-    let info = ImgurClient::new("3e3ce0d7ac14d56")
+    let info = ImgurClient::new(TOKENS[0])
         .upload_image(&path)
         .await?;
 
