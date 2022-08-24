@@ -1,8 +1,6 @@
 extern crate systemstat;
 
 use crate::crypto;
-#[cfg(target_os = "windows")]
-use crate::crypto;
 use crate::info_crypt;
 use anyhow::anyhow;
 use anyhow::Context;
