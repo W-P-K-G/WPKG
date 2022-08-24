@@ -7,6 +7,7 @@ mod stat;
 mod version;
 mod devupdate;
 mod reconnect;
+mod checkupdates;
 
 use std::any::Any;
 
@@ -16,7 +17,7 @@ use crate::client::Client;
 
 use self::{
     disconnect::Disconnect, help::Help, ping::Ping, run::Run, screenshot::Screenshot, stat::Stat,
-    version::Version,devupdate::DevUpdate,reconnect::Reconnect,
+    version::Version,devupdate::DevUpdate,reconnect::Reconnect,checkupdates::CheckUpdates,
 };
 
 #[async_trait]
@@ -42,13 +43,14 @@ impl CommandsManager {
             commands: vec![
                 Box::new(Stat),
                 Box::new(Run),
+                Box::new(Reconnect),
                 Box::new(Screenshot),
                 Box::new(Disconnect),
-                Box::new(Reconnect),
+                Box::new(DevUpdate),
+                Box::new(CheckUpdates),
                 Box::new(Ping),
                 Box::new(Version),
                 Box::new(Help),
-                Box::new(DevUpdate)
             ],
         }
     }

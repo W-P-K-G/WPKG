@@ -8,9 +8,12 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Cursor;
+use std::process::Command;
+use std::thread;
+use std::time::Duration;
+
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
-use std::process::Command;
 
 use imgurs::ImgurClient;
 use rand::prelude::*;
@@ -192,11 +195,10 @@ pub fn stat() -> String {
 
     // get cpu usage
     if let Ok(cpu) = sys.cpu_load_aggregate() {
-        //thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_secs(1));
         let cpu = cpu.done().unwrap();
         cpu_usage = cpu.user * 100.0;
     }
-
     // get memory usage
     if let Ok(mem) = sys.memory() {
         memory_free = saturating_sub_bytes(mem.total, mem.free).as_u64();
