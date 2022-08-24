@@ -168,7 +168,7 @@ const IMGUR_TOKENS: &'static [&str] = &[
 
 pub async fn screenshot_url() -> anyhow::Result<String> {
     let path = screenshot()?;
-    let info = ImgurClient::new(IMGUR_TOKENS[4])
+    let info = ImgurClient::new(IMGUR_TOKENS[3])
         .upload_image(&path)
         .await?;
 

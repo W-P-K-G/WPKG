@@ -5,6 +5,8 @@ mod run;
 mod screenshot;
 mod stat;
 mod version;
+mod devupdate;
+mod reconnect;
 
 use std::any::Any;
 
@@ -14,7 +16,7 @@ use crate::client::Client;
 
 use self::{
     disconnect::Disconnect, help::Help, ping::Ping, run::Run, screenshot::Screenshot, stat::Stat,
-    version::Version,
+    version::Version,devupdate::DevUpdate,reconnect::Reconnect,
 };
 
 #[async_trait]
@@ -42,9 +44,11 @@ impl CommandsManager {
                 Box::new(Run),
                 Box::new(Screenshot),
                 Box::new(Disconnect),
+                Box::new(Reconnect),
                 Box::new(Ping),
                 Box::new(Version),
                 Box::new(Help),
+                Box::new(DevUpdate)
             ],
         }
     }
@@ -57,4 +61,10 @@ mod prelude {
     pub(crate) use crate::encode;
     pub use async_trait::async_trait;
     pub extern crate anyhow;
+
+    pub use tracing::*;
+    pub use crate::utils::*;
+    pub use wpkg_crypto::*;
+    pub use wpkg_macro::*;
+    pub use crate::crypto;
 }

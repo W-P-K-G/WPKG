@@ -11,7 +11,7 @@ impl Command for Run {
     }
 
     fn help(&self) -> &'static str {
-        encode!("run process")
+        encode!("<exe> <args> - Run process")
     }
 
     fn min_args(&self) -> usize {

@@ -40,9 +40,9 @@ pub async fn connect(addr: &str) {
 }
 
 pub struct Client {
-    stream: TcpStream,
-    connected: bool,
-    reconnecting: bool,
+    pub stream: TcpStream,
+    pub connected: bool,
+    pub reconnecting: bool,
 }
 
 impl Client {

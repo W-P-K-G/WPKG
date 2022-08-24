@@ -3,7 +3,7 @@ use super::prelude::*;
 pub struct Stat;
 
 #[async_trait]
-impl Command for Stat {
+impl Command for Test {
     fn name(&self) -> &'static str {
         crypto!("cmd")
     }
