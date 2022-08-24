@@ -1,8 +1,8 @@
-use crate::error_crypt;
-
 use super::prelude::*;
-
-use crate::updater::{self};
+use crate::{
+    error_crypt,
+    updater::{self},
+};
 
 pub struct CheckUpdates;
 
@@ -24,25 +24,29 @@ impl Command for CheckUpdates {
         match updater::check_updates().await {
             Ok((up_to_date, new_version, url)) => {
                 if !up_to_date {
-                    client.send(&format!("{} {}", crypto!("Disconnecting & starting update... because new version founded"), new_version))?;
-        
+                    client.send(&format!(
+                        "{} {}",
+                        crypto!("Disconnecting & starting update... because new version founded"),
+                        new_version
+                    ))?;
+
                     client.send("/disconnect")?;
-        
+
                     if let Err(err) = updater::update(&url).await {
                         error!("{}: {err}", crypto!("Updating failed"));
                     }
                 } else {
                     client.send(&crypto!("WPKG is up to date!"))?;
                 }
-            }
-        
+            },
+
             Err(e) => {
                 let msg = format!("{} {}", crypto!("Failed to check updates"), e);
-        
+
                 error_crypt!("{msg}");
-        
+
                 client.send(&msg)?;
-            }
+            },
         }
         Ok(())
     }

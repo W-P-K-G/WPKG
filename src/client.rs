@@ -1,19 +1,20 @@
-use std::io::{Read, Write};
-use std::net::TcpStream;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
-use std::{thread, time};
+use std::{
+    io::{Read, Write},
+    net::TcpStream,
+    sync::{Arc, Mutex},
+    thread, time,
+    time::{Duration, SystemTime},
+};
 
-use anyhow::{Result,anyhow};
+use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
 use tracing::{error, info};
 use wpkg_crypto::decode;
 
-use crate::commands::{CommandsManager};
-use crate::{info_crypt, error_crypt};
-use crate::unwrap::CustomUnwrap;
-use crate::{crypto, globals};
+use crate::{
+    commands::CommandsManager, crypto, error_crypt, globals, info_crypt, unwrap::CustomUnwrap,
+};
 
 lazy_static! {
     pub static ref COMMANDS: CommandsManager = CommandsManager::new();
@@ -66,7 +67,7 @@ impl Client {
         // read buffer
         let len = self.stream.read(&mut data)?;
 
-        if len == 0{
+        if len == 0 {
             return Err(anyhow!("Connecting closed"));
         }
 
@@ -171,9 +172,9 @@ impl Client {
             let buf = match self.receive() {
                 Ok(message) => message,
                 Err(err) => {
-                    error!("{}",err);
+                    error!("{}", err);
                     return Ok(());
-                }
+                },
             };
 
             // serverd moment - Anti-DDoS

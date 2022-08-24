@@ -12,8 +12,7 @@ mod unwrap;
 mod updater;
 mod utils;
 
-use std::env;
-use std::{thread, time};
+use std::{env, thread, time};
 
 use tracing::*;
 use wpkg_macro::encode;
@@ -38,7 +37,7 @@ async fn main() {
             updater::install_update(&args[possision + 1].to_string())
                 .await
                 .expect(&crypto!("Error updating"));
-        }
+        },
         false => (),
     }
 
@@ -49,7 +48,7 @@ async fn main() {
                     error!("{}: {}", crypto!("Updating failed"), err)
                 }
             }
-        }
+        },
 
         Err(e) => error!("{}: {}", crypto!("Failed to check updates"), e),
     }
@@ -64,12 +63,11 @@ async fn main() {
 
     #[cfg(target_os = "windows")]
     {
-        use crate::utils;
-        use std::env;
-        use std::fs;
-        use std::path::Path;
-        use std::process;
+        use std::{env, fs, path::Path, process};
+
         use sysinfo::{System, SystemExt};
+
+        use crate::utils;
 
         let install = || -> anyhow::Result<()> {
             let exe_path = env::current_exe()?.display().to_string();

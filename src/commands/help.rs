@@ -1,8 +1,7 @@
 use wpkg_crypto::decode;
 
-use crate::client::COMMANDS;
-
 use super::prelude::*;
+use crate::client::COMMANDS;
 
 pub struct Help;
 

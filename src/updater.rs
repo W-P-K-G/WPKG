@@ -1,12 +1,10 @@
-#[cfg(target_os = "windows")]
-use crate::crypto;
-use crate::globals::UPDATER_URL;
-use crate::utils;
-use crate::{globals, info_crypt};
-
 use serde::{Deserialize, Serialize};
 use tracing::*;
 use wpkg_crypto::decode;
+
+#[cfg(target_os = "windows")]
+use crate::crypto;
+use crate::{globals, globals::UPDATER_URL, info_crypt, utils};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Versions {

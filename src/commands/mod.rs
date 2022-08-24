@@ -1,24 +1,24 @@
+mod checkupdates;
+mod devupdate;
 mod disconnect;
 mod help;
 mod ping;
+mod reconnect;
 mod run;
 mod screenshot;
 mod stat;
 mod version;
-mod devupdate;
-mod reconnect;
-mod checkupdates;
 
 use std::any::Any;
 
 use async_trait::async_trait;
 
-use crate::client::Client;
-
 use self::{
-    disconnect::Disconnect, help::Help, ping::Ping, run::Run, screenshot::Screenshot, stat::Stat,
-    version::Version,devupdate::DevUpdate,reconnect::Reconnect,checkupdates::CheckUpdates,
+    checkupdates::CheckUpdates, devupdate::DevUpdate, disconnect::Disconnect, help::Help,
+    ping::Ping, reconnect::Reconnect, run::Run, screenshot::Screenshot, stat::Stat,
+    version::Version,
 };
+use crate::client::Client;
 
 #[async_trait]
 pub trait Command: Any + Send + Sync {
@@ -57,16 +57,16 @@ impl CommandsManager {
 }
 
 mod prelude {
-    pub use super::*;
+    pub use async_trait::async_trait;
 
+    pub use super::*;
     pub use crate::client::Client;
     pub(crate) use crate::encode;
-    pub use async_trait::async_trait;
     pub extern crate anyhow;
 
     pub use tracing::*;
-    pub use crate::utils::*;
     pub use wpkg_crypto::*;
     pub use wpkg_macro::*;
-    pub use crate::crypto;
+
+    pub use crate::{crypto, utils::*};
 }

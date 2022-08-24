@@ -1,28 +1,24 @@
 extern crate systemstat;
 
-use crate::crypto;
-use crate::info_crypt;
-use crate::utils;
-use anyhow::anyhow;
-use anyhow::Context;
-use std::fs;
-use std::fs::File;
-use std::io;
-use std::io::stdout;
-use std::io::Cursor;
-use std::io::Write;
-use std::process::Command;
-use std::process::Output;
-use std::thread;
-use std::time::Duration;
-use wpkg_macro::encode;
-
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
+use std::{
+    fs,
+    fs::File,
+    io,
+    io::Cursor,
+    process::{Command, Output},
+    thread,
+    time::Duration,
+};
 
+use anyhow::{anyhow, Context};
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
+use wpkg_macro::encode;
+
+use crate::{crypto, info_crypt, utils};
 
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -152,8 +148,9 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 
     #[cfg(target_os = "windows")]
     {
-        use platform_dirs::AppDirs;
         use std::path::Path;
+
+        use platform_dirs::AppDirs;
 
         let app_dirs = AppDirs::new(Some("WPKG"), true).context("Error")?;
         let config_dir = app_dirs.config_dir.display().to_string();

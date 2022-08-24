@@ -1,6 +1,5 @@
-use crate::globals;
-
 use super::prelude::*;
+use crate::globals;
 
 pub struct Version;
 

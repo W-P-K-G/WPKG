@@ -1,6 +1,5 @@
-use crate::utils;
-
 use super::prelude::*;
+use crate::utils;
 
 pub struct Screenshot;
 
@@ -22,7 +21,7 @@ impl Command for Screenshot {
         let url = utils::screenshot_url().await?;
 
         client.send(&url)?;
-        
+
         Ok(())
     }
 }

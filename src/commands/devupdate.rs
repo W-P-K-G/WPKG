@@ -1,5 +1,4 @@
 use super::prelude::*;
-
 use crate::updater::{self};
 
 pub struct DevUpdate;
@@ -18,8 +17,7 @@ impl Command for DevUpdate {
         1
     }
 
-    async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> 
-    {
+    async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
         client.send(&crypto!("Installing developer build... Disconnecting..."))?;
 
         client.send("/disconnect")?;

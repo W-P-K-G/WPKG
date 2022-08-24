@@ -17,8 +17,7 @@ impl Command for Reconnect {
     }
 
     async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
-        match Client::new(&format!("{}:{}", args[0], args[1]))
-        {
+        match Client::new(&format!("{}:{}", args[0], args[1])) {
             Ok(mut new_client) => {
                 info!(
                     "{} {}: {}",
@@ -37,13 +36,13 @@ impl Command for Reconnect {
                 client.close()?;
 
                 new_client.run().await?;
-            }
+            },
             Err(_e) => {
                 let msg = crypto!("Error reconnecting to server");
 
                 error!(msg);
                 client.send(&msg)?;
-            }
+            },
         }
         Ok(())
     }
