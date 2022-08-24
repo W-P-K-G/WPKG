@@ -60,9 +60,6 @@ pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Out
     {
         full_command.push(crypto!("cmd.exe"));
         full_command.push(crypto!("/c"));
-        if !wait {
-            full_command.push(crypto!("start"));
-        }
     }
 
     full_command.push(exe.to_owned());
