@@ -1,15 +1,15 @@
 use super::prelude::*;
 
-pub struct Stat;
+pub struct Test;
 
 #[async_trait]
 impl Command for Test {
     fn name(&self) -> &'static str {
-        crypto!("cmd")
+        encode!("cmd")
     }
 
     fn help(&self) -> &'static str {
-        crypto!("Help")
+        encode!("Help")
     }
 
     fn min_args(&self) -> usize {
