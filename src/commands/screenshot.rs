@@ -21,6 +21,8 @@ impl Command for Screenshot {
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
         let url = utils::screenshot_url().await?;
 
-        Ok(client.send(&url)?)
+        client.send(&url)?;
+        
+        Ok(())
     }
 }
