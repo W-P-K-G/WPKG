@@ -17,6 +17,6 @@ impl Command for Ping {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send("ping-recived")?)
+        Ok(client.send("ping-received")?)
     }
 }

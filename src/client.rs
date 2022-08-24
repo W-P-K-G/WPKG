@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use std::{thread, time};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
 use tracing::{error, info};
@@ -13,40 +13,29 @@ use wpkg_crypto::decode;
 use crate::commands::CommandsManager;
 use crate::info_crypt;
 use crate::unwrap::CustomUnwrap;
-use crate::{crypto, error_crypt, globals};
+use crate::{crypto, globals};
 
 lazy_static! {
     pub static ref COMMANDS: CommandsManager = CommandsManager::new();
 }
 
 #[async_recursion(?Send)]
-pub async fn connect(addr: String) {
-    // connect to the ServerD
-    match Client::new(addr.clone()) {
-        Ok(mut client) => {
+pub async fn connect(addr: &str) {
+    loop {
+        if let Ok(mut client) = Client::new(addr) {
             info_crypt!("Connected!");
 
             // reconnect if error
             if let Err(err) = client.run().await {
                 error!("Unexpected error {}", err);
-
-                // wait 10 seconds before reconnect
-                thread::sleep(time::Duration::from_secs(10));
-                // reconnect
-                connect(addr).await;
             }
         }
 
-        // reconnect to the server
-        Err(_e) => {
-            error_crypt!("Unable to connect to the server. Reconnecting...");
+        // wait 10 seconds before reconnect
+        thread::sleep(time::Duration::from_secs(10));
 
-            // wait 10 seconds before reconnect
-            thread::sleep(time::Duration::from_secs(10));
-
-            // reconnect
-            connect(addr).await;
-        }
+        // reconnect
+        connect(addr).await;
     }
 }
 
@@ -57,7 +46,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(address: String) -> Result<Self> {
+    pub fn new(address: &str) -> Result<Self> {
         // connect to the server
         let stream = TcpStream::connect(address)?;
 
@@ -86,24 +75,24 @@ impl Client {
         Ok(buf_str)
     }
 
-    pub fn rawdata_recieve(&mut self) -> Result<Vec<u8>> {
-        // allocate an empty buffer
-        let mut data = [0; 65536];
+    // pub fn rawdata_recieve(&mut self) -> Result<Vec<u8>> {
+    //     // allocate an empty buffer
+    //     let mut data = [0; 65536];
 
-        // read buffer
-        let len = self.stream.read(&mut data)?;
+    //     // read buffer
+    //     let len = self.stream.read(&mut data)?;
 
-        // get buffer without "empty" bytes
-        let recv_buf = &data[0..len];
+    //     // get buffer without "empty" bytes
+    //     let recv_buf = &data[0..len];
 
-        Ok(recv_buf.to_vec())
-    }
+    //     Ok(recv_buf.to_vec())
+    // }
 
-    pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
-        self.stream.write_all(message)?;
+    // pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
+    //     self.stream.write_all(message)?;
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     /// Send a message to the server
     pub fn send(&mut self, message: &str) -> Result<()> {
@@ -124,19 +113,7 @@ impl Client {
         self.receive()
     }
 
-    pub fn check_args(&mut self, args: Vec<&str>, length: usize) -> Result<bool> {
-        if args.len() < length {
-            self.send("Missing arguments")?;
-            return Ok(false);
-        } else if args.len() < length {
-            self.send("Too much arguments")?;
-            return Ok(false);
-        }
-
-        Ok(true)
-    }
-
-    //detecting computer suspend and reconnecting
+    // detecting computer suspend and reconnecting
     fn suspend_handler(&mut self) -> anyhow::Result<()> {
         let arc_connected = Arc::new(Mutex::new(self.connected));
         let tcp_stream = self.stream.try_clone()?;

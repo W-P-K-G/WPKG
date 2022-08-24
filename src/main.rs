@@ -1,5 +1,6 @@
 // Remove console window in Windows OS
 #![windows_subsystem = "windows"]
+#![allow(dead_code)]
 
 mod addreses;
 mod client;
@@ -142,5 +143,5 @@ async fn main() {
     });
 
     // connect to the ServerD
-    client::connect(tcp_address).await;
+    client::connect(&tcp_address).await;
 }
