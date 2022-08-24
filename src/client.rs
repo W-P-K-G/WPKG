@@ -196,8 +196,9 @@ impl Client {
             }
 
             // serverd moment - Anti-DDoS
+            // if the server returns `unknown command`, skip the message
             if buf.to_ascii_lowercase().contains("unknown command") {
-                Err(anyhow!(crypto!("Client crashed, due to serverd moment.")))?;
+                continue;
             }
 
             async fn handle(client: &mut Client, buf: String) -> anyhow::Result<()> {
