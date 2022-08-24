@@ -31,7 +31,6 @@ lazy_static = "1.4.0"
 tokio = { version = "1.20.0", features = ["macros", "rt-multi-thread"] }
 reqwest = { version = "0.11.11", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1.0.144", features = ["derive"] }
-imgurs = { git = "https://github.com/MedzikUser/imgurs", default-features = false, features = ["null_pointer"]}
 wpkg-macro = { path = "./wpkg-macro" }
 wpkg-crypto = { path = "./wpkg-crypto" }
 
