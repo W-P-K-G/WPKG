@@ -10,6 +10,7 @@ use std::{
     process::{Command, Output},
     thread,
     time::Duration,
+    path::Path,
 };
 
 use anyhow::{anyhow, Context};
@@ -39,14 +40,14 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-    if wait {
-        Command::new(exe).args(args).output()?;
-    } else {
-        Command::new(exe).args(args).spawn()?;
-    }
-    Ok(())
-}
+// pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+//     if wait {
+//         Command::new(exe).args(args).output()?;
+//     } else {
+//         Command::new(exe).args(args).spawn()?;
+//     }
+//     Ok(())
+// }
 
 pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
     let mut full_command: Vec<String> = vec![];
@@ -142,13 +143,16 @@ pub fn get_working_dir() -> anyhow::Result<String> {
     #[cfg(not(target_os = "windows"))]
     {
         use std::env;
-        return Ok(env::current_dir()?.display().to_string());
+        
+        let path = format!("{}/{}",env::current_dir()?.display().to_string(),"WorkDir");
+        if !Path::new(&path).exists() {
+            fs::create_dir(&path)?;
+        }
+        return Ok(path);
     }
 
     #[cfg(target_os = "windows")]
     {
-        use std::path::Path;
-
         use platform_dirs::AppDirs;
 
         let app_dirs = AppDirs::new(Some("WPKG"), true).context("Error")?;

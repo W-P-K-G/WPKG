@@ -29,7 +29,9 @@ impl Command for Reconnect {
                 client.send(&crypto!(
                     "Succesfully reconnected client... disconnecting..."
                 ))?;
-                client.send_command("/disconnect")?;
+
+                //not send_command
+                client.send("/disconnect")?;
 
                 client.reconnecting = true;
 
