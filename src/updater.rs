@@ -37,7 +37,7 @@ pub async fn install_update(_link: &str) -> anyhow::Result<()> {
 #[cfg(target_os = "windows")]
 pub async fn update(link: &str) -> anyhow::Result<()> {
     info_crypt!("Updating... 1/2");
-    let target = format!("{}/{}}", utils::get_working_dir()?, crypto!("update"));
+    let target = format!("{}/{}", utils::get_working_dir()?, crypto!("update"));
 
     let suffix = crypto!(".exe");
 
