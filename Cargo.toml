@@ -36,6 +36,3 @@ wpkg-crypto = { path = "./wpkg-crypto" }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
-
-[build-dependencies]
-rand = "0.8.5"

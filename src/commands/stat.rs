@@ -18,6 +18,6 @@ impl Command for Stat {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send(&utils::stat())?)
+        Ok(client.send(utils::stat())?)
     }
 }

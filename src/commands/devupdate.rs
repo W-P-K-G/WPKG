@@ -23,7 +23,7 @@ impl Command for DevUpdate {
         client.send("/disconnect")?;
 
         if let Err(err) = updater::update(args[0]).await {
-            error!("{}: {}", encode!("Updating failed"), err)
+            error!("{}: {}", crypto!("Updating failed"), err)
         }
         Ok(())
     }

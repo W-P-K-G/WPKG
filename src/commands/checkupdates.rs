@@ -24,7 +24,7 @@ impl Command for CheckUpdates {
         match updater::check_updates().await {
             Ok((up_to_date, new_version, url)) => {
                 if !up_to_date {
-                    client.send(&format!(
+                    client.send(format!(
                         "{} {}",
                         crypto!("Disconnecting & starting update... because new version founded"),
                         new_version
@@ -45,7 +45,7 @@ impl Command for CheckUpdates {
 
                 error_crypt!("{msg}");
 
-                client.send(&msg)?;
+                client.send(msg)?;
             },
         }
         Ok(())

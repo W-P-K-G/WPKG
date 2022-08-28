@@ -17,6 +17,6 @@ impl Command for Test {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send("send")?)
+        Ok(client.send(crypto!("message"))?)
     }
 }

@@ -26,7 +26,7 @@ impl Command for Reconnect {
                     args[1]
                 );
 
-                client.send(&crypto!(
+                client.send(crypto!(
                     "Succesfully reconnected client... disconnecting..."
                 ))?;
 

@@ -1,3 +1,4 @@
+use core::fmt;
 use std::{
     io::{Read, Write},
     net::TcpStream,
@@ -68,7 +69,7 @@ impl Client {
         let len = self.stream.read(&mut data)?;
 
         if len == 0 {
-            return Err(anyhow!("Connecting closed"));
+            return Err(anyhow!(crypto!("Connecting closed")));
         }
 
         // get buffer without "empty" bytes
@@ -102,7 +103,10 @@ impl Client {
     // }
 
     /// Send a message to the server
-    pub fn send(&mut self, message: &str) -> Result<()> {
+    pub fn send<S>(&mut self, message: S) -> Result<()>
+    where
+        S: ToString + fmt::Display,
+    {
         info!("{}: {}", crypto!("[Sended]"), message);
 
         // send message to the server
@@ -112,7 +116,10 @@ impl Client {
     }
 
     /// Send command to the server
-    pub fn send_command(&mut self, message: &str) -> Result<String> {
+    pub fn send_command<S>(&mut self, message: S) -> Result<String>
+    where
+        S: ToString + fmt::Display,
+    {
         // send command
         self.send(message)?;
 
@@ -204,14 +211,14 @@ impl Client {
 
                 if let Some((_i, cmd)) = command {
                     if args.len() < cmd.min_args() {
-                        client.send("Missing arguments for the command.")?;
+                        client.send(&crypto!("Missing arguments for the command."))?;
 
                         return Ok(());
                     }
 
                     cmd.execute(client, args).await?;
                 } else {
-                    client.send("unknown command")?;
+                    client.send(crypto!("unknown command"))?;
                 }
 
                 Ok(())
@@ -219,7 +226,7 @@ impl Client {
 
             if let Err(err) = handle(self, buf).await {
                 error!("Unexpected error in message handler: {}", err);
-                self.send("Unexpected error")?;
+                self.send(crypto!("Unexpected error"))?;
             }
         }
 
