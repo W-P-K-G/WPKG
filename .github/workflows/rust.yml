@@ -8,6 +8,13 @@ env:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+
+      matrix:
+        build:
+          - release
+          - release-with-cmd
 
     runs-on: windows-latest
 
@@ -32,20 +39,19 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: rust-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-4
+        key: cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-${{ matrix.build }}-1
+
+    - name: Enable cmd
+      run: |
+        sed -i '/windows_subsystem = "windows"/d' src/main.rs
+        cat src/main.rs
+      if: ${{ matrix.build == 'release-with-cmd' }}
 
     - name: Build
       run: cargo build --release
 
-#     - name: Compress binaries
-#       uses: svenstaro/upx-action@v2
-#       with:
-#         file: target/release/wpkg.exe
-#         args: --lzma
-#         strip: true
-
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: release
+        name: ${{ matrix.build }}
         path: target/release/wpkg.exe

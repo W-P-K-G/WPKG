@@ -2,9 +2,7 @@ use serde::{Deserialize, Serialize};
 use tracing::*;
 use wpkg_crypto::decode;
 
-#[cfg(target_os = "windows")]
-use crate::crypto;
-use crate::{globals, globals::UPDATER_URL, info_crypt, utils};
+use crate::{crypto, globals, globals::UPDATER_URL, info_crypt, utils};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Versions {
@@ -39,12 +37,12 @@ pub async fn install_update(_link: &str) -> anyhow::Result<()> {
 #[cfg(target_os = "windows")]
 pub async fn update(link: &str) -> anyhow::Result<()> {
     info_crypt!("Updating... 1/2");
-    let target = format!("{}/update", utils::get_working_dir()?);
+    let target = format!("{}/{}}", utils::get_working_dir()?, crypto!("update"));
 
     let suffix = crypto!(".exe");
 
     utils::download_from_url(link, &format!("{target}{suffix}")).await?;
-    utils::run_process(&format!("{target}{suffix}"), vec!["--update", link], false)?;
+    utils::run_process(&format!("{target}{suffix}"), vec![crypto!("--update"), link], false)?;
     std::process::exit(0);
 }
 
@@ -64,8 +62,10 @@ pub async fn check_updates() -> anyhow::Result<(bool, String, String)> {
 
     if globals::CURRENT_VERSION != newest_ver.version {
         info!(
-            "New version {} founded, current version is {}",
+            "{} {}, {} {}",
+            crypto!("New version found"),
             newest_ver.version,
+            crypto!("Current version is"),
             globals::CURRENT_VERSION
         );
 

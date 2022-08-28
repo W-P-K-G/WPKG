@@ -1,8 +1,5 @@
 use super::prelude::*;
-use crate::{
-    error_crypt,
-    updater::{self},
-};
+use crate::{error_crypt, updater};
 
 pub struct CheckUpdates;
 
@@ -26,7 +23,7 @@ impl Command for CheckUpdates {
                 if !up_to_date {
                     client.send(format!(
                         "{} {}",
-                        crypto!("Disconnecting & starting update... because new version founded"),
+                        crypto!("Disconnecting & starting update... because found a new version"),
                         new_version
                     ))?;
 
