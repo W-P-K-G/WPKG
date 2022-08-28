@@ -1,5 +1,5 @@
 // Remove console window in Windows OS
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
 mod addreses;
@@ -60,8 +60,8 @@ async fn main() {
         .get(0)
         .unwrap_or(&Address::default())
         .format();
-
-    #[cfg(target_os = "windows")]
+    
+    #[cfg(all(target_os = "windows", not(debug_assertions)))]
     {
         use std::{env, fs, path::Path, process};
 
