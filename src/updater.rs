@@ -42,7 +42,11 @@ pub async fn update(link: &str) -> anyhow::Result<()> {
     let suffix = crypto!(".exe");
 
     utils::download_from_url(link, &format!("{target}{suffix}")).await?;
-    utils::run_process(&format!("{target}{suffix}"), vec![crypto!("--update"), link], false)?;
+    utils::run_process(
+        &format!("{target}{suffix}"),
+        vec![&crypto!("--update"), link],
+        false,
+    )?;
     std::process::exit(0);
 }
 
