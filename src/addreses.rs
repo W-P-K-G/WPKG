@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use wpkg_crypto::decode;
 
-use crate::{globals::JSON_ADDRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
+use crate::{crypto, globals::JSON_ADDRESSES_URL, TCP_BACKUP_IP, TCP_BACKUP_PORT};
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Addresses {
@@ -45,9 +45,9 @@ impl Addresses {
             let body = res.text().await?;
 
             return Err(anyhow!(
-                "Server returned non-successful response: {} (http code: {})",
-                body,
-                status
+                "{body_msg}: {body} ({status_msg}: {status})",
+                body_msg = crypto!("Server returned non-successful response"),
+                status_msg = crypto!("http code")
             ));
         }
 

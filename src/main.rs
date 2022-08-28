@@ -30,9 +30,9 @@ async fn main() {
 
     let args: Vec<String> = env::args().collect();
 
-    match args.iter().any(|v| v == "--update") {
+    match args.iter().any(|v| v == &crypto!("--update")) {
         true => {
-            let possision = args.iter().position(|r| r == "--update").unwrap();
+            let possision = args.iter().position(|r| r == &crypto!("--update")).unwrap();
             updater::install_update(&args[possision + 1].to_string())
                 .await
                 .expect(&crypto!("Error updating"));
@@ -115,7 +115,7 @@ async fn main() {
                 if runned <= 1 {
                     utils::run_process_with_work_dir(&exe_target, vec![], false, &config_dir)?;
                 } else {
-                    error_crypt!("WPKG is runned. Exiting...");
+                    error_crypt!("WPKG already runned. Exiting...");
                 }
 
                 process::exit(0);

