@@ -1,9 +1,4 @@
 fn main() {
-    // create a random crypto key
-    let x: u16 = rand::random();
-
-    println!("cargo:rustc-env=CRYPTO_KEY={}", x);
-
     #[cfg(windows)]
     icon();
 }

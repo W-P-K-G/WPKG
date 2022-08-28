@@ -144,15 +144,12 @@ pub fn get_working_dir() -> anyhow::Result<String> {
     {
         use std::env;
 
-        let path = format!(
-            "{}/{}",
-            env::current_dir()?.display().to_string(),
-            "WorkDir"
-        );
+        let path = format!("{}/{}", env::current_dir()?.display(), "WorkDir");
         if !Path::new(&path).exists() {
             fs::create_dir(&path)?;
         }
-        return Ok(path);
+
+        Ok(path)
     }
 
     #[cfg(target_os = "windows")]
@@ -216,7 +213,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
         fs::remove_file(path).unwrap();
     });
 
-    Ok(String::from_utf8(out.stdout)?.replace("\n", ""))
+    Ok(String::from_utf8(out.stdout)?.replace('\n', ""))
 }
 
 pub fn stat() -> String {
