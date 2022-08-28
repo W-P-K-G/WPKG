@@ -1662,7 +1662,15 @@ dependencies = [
 name = "wpkg-crypto"
 version = "0.0.0"
 dependencies = [
- "wpkg-rand",
+ "wpkg-key",
+]
+
+[[package]]
+name = "wpkg-key"
+version = "0.0.0"
+dependencies = [
+ "quote",
+ "rand",
 ]
 
 [[package]]
@@ -1674,14 +1682,6 @@ dependencies = [
  "syn",
  "thiserror",
  "wpkg-crypto",
-]
-
-[[package]]
-name = "wpkg-rand"
-version = "0.0.0"
-dependencies = [
- "quote",
- "rand",
 ]
 
 [[package]]

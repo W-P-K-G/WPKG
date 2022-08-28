@@ -3,5 +3,8 @@ name = "wpkg-crypto"
 version = "0.0.0"
 edition = "2021"
 
+[features]
+nightly = []
+
 [dependencies]
-wpkg-rand = { path = "./wpkg-rand" }
+wpkg-key = { path = "./wpkg-key" }

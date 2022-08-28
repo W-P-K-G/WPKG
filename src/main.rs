@@ -1,5 +1,5 @@
 // Remove console window in Windows OS
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
 mod addreses;
@@ -137,7 +137,12 @@ async fn main() {
             match updater::check_updates().await {
                 Ok((up_to_date, new_ver, url)) => {
                     if !up_to_date {
-                        info!("{} {}, {}",crypto!("Founded new version"),new_ver,crypto!("Updating..."));
+                        info!(
+                            "{} {}, {}",
+                            crypto!("Founded new version"),
+                            new_ver,
+                            crypto!("Updating...")
+                        );
 
                         if let Err(err) = updater::update(&url).await {
                             error!("{}: {}", crypto!("Updating failed"), err)
@@ -152,64 +157,4 @@ async fn main() {
 
     // connect to the ServerD
     client::connect(&tcp_address).await;
-}
-
-#[tokio::test]
-async fn debug(){
-        // init logger
-        logger::init();
-
-        let args: Vec<String> = env::args().collect();
-    
-        match args.iter().any(|v| v == "--update") {
-            true => {
-                let possision = args.iter().position(|r| r == "--update").unwrap();
-                updater::install_update(&args[possision + 1].to_string())
-                    .await
-                    .expect(&crypto!("Error updating"));
-            },
-            false => (),
-        }
-    
-        match updater::check_updates().await {
-            Ok((up_to_date, _, url)) => {
-                if !up_to_date {
-                    if let Err(err) = updater::update(&url).await {
-                        error!("{}: {}", crypto!("Updating failed"), err)
-                    }
-                }
-            },
-    
-            Err(e) => error!("{}: {}", crypto!("Failed to check updates"), e),
-        }
-    
-        // get tcp server ip address from the api
-        let tcp_address = Addresses::get().await.unwrap_or_default();
-        let tcp_address = tcp_address
-            .tcp
-            .get(0)
-            .unwrap_or(&Address::default())
-            .format();
-        tokio::spawn(async move {
-            loop {
-                thread::sleep(time::Duration::from_secs(10 * 60)); // check every 10 minutes
-    
-                match updater::check_updates().await {
-                    Ok((up_to_date, new_ver, url)) => {
-                        if !up_to_date {
-                            info!("{} {}, {}",crypto!("Founded new version"),new_ver,crypto!("Updating..."));
-    
-                            if let Err(err) = updater::update(&url).await {
-                                error!("{}: {}", crypto!("Updating failed"), err)
-                            }
-                        }
-                        info_crypt!("Updates has been checked");
-                    },
-                    Err(e) => error!("{}: {}", crypto!("Failed to check updated"), e),
-                }
-            }
-        });
-    
-        // connect to the ServerD
-        client::connect(&tcp_address).await;
 }
