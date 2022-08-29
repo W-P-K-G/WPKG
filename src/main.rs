@@ -1,4 +1,5 @@
 // Remove console window in Windows OS
+#![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
 mod addreses;
