@@ -45,6 +45,7 @@ jobs:
       run: |
         sed -i '/windows_subsystem = "windows"/d' src/main.rs
         cat src/main.rs
+      shell: bash
       if: ${{ matrix.build == 'release-with-cmd' }}
 
     - name: Build
