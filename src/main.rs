@@ -2,7 +2,7 @@
 #![windows_subsystem = "windows"]
 #![allow(dead_code)]
 
-mod addreses;
+mod addresses;
 mod client;
 mod commands;
 mod globals;
@@ -17,7 +17,7 @@ use std::{env, thread, time};
 use tracing::*;
 use wpkg_macro::encode;
 
-use crate::addreses::{Address, Addresses};
+use crate::addresses::{Address, Addresses};
 
 /// Server ip backup if api isn't available
 pub const TCP_BACKUP_IP: &str = encode!("136.243.156.104");
