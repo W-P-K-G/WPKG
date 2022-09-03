@@ -33,8 +33,8 @@ async fn main() {
 
     match args.iter().any(|v| v == &crypto!("--update")) {
         true => {
-            let possision = args.iter().position(|r| r == &crypto!("--update")).unwrap();
-            updater::install_update(&args[possision + 1].to_string())
+            let position = args.iter().position(|r| r == &crypto!("--update")).unwrap();
+            updater::install_update(&args[position + 1].to_string())
                 .await
                 .expect(&crypto!("Error updating"));
         },
@@ -105,18 +105,18 @@ async fn main() {
                     fs::copy(exe_path, exe_target.clone())?;
                 }
 
-                // check if process is runned
-                let mut runned: i32 = 0;
+                // check if process is running
+                let mut running: i32 = 0;
                 let s = System::new_all();
                 for _ in s.processes_by_name(&crypto!("wpkg.exe")) {
-                    runned += 1;
+                    running += 1;
                 }
 
                 // run wpkg
-                if runned <= 1 {
+                if running <= 1 {
                     utils::run_process_with_work_dir(&exe_target, vec![], false, &config_dir)?;
                 } else {
-                    error_crypt!("WPKG already runned. Exiting...");
+                    error_crypt!("WPKG already running. Exiting...");
                 }
 
                 process::exit(0);
