@@ -1,6 +1,6 @@
 fn main() {
-    #[cfg(windows)]
-    icon();
+    //#[cfg(windows)]
+    //icon();
 }
 
 #[cfg(windows)]

@@ -132,7 +132,7 @@ impl Client {
         let arc_connected = Arc::new(Mutex::new(self.connected));
         let tcp_stream = self.stream.try_clone()?;
 
-        tokio::spawn(async move {
+        thread::spawn(move || {
             info_crypt!("Starting suspend detecting system...");
 
             while *Arc::clone(&arc_connected).lock().unwrap() {
@@ -247,12 +247,3 @@ impl Client {
         Ok(())
     }
 }
-
-// /// "Correctly" close connection
-// impl Drop for Client {
-//     #[allow(unused_must_use)]
-//     fn drop(&mut self) {
-//         self.send_command("/disconnect");
-//         self.close().unwrap_log();
-//     }
-// }

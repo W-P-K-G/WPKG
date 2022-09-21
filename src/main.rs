@@ -1,6 +1,5 @@
 // Remove console window in Windows OS
 #![windows_subsystem = "windows"]
-#![allow(dead_code)]
 
 mod addresses;
 mod client;
@@ -23,6 +22,7 @@ use crate::addresses::{Address, Addresses};
 pub const TCP_BACKUP_IP: &str = encode!("136.243.156.104");
 /// Server port backup if api isn't available
 pub const TCP_BACKUP_PORT: u32 = 3217;
+
 
 #[tokio::main]
 async fn main() {
