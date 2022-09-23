@@ -39,7 +39,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-${{ matrix.build }}-2
+        key: cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-${{ matrix.build }}-3
 
     - name: Enable cmd
       run: |
