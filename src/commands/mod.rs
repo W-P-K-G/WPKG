@@ -2,22 +2,21 @@ mod checkupdates;
 mod devupdate;
 mod disconnect;
 mod help;
+mod msg;
 mod ping;
 mod reconnect;
 mod run;
 mod screenshot;
 mod stat;
 mod version;
-mod msg;
 
 use std::{any::Any, fmt};
 
 use async_trait::async_trait;
 
 use self::{
-    checkupdates::*, devupdate::*, disconnect::*, help::*,
-    ping::*, reconnect::*, run::*, screenshot::*, stat::*,
-    version::*, msg::*
+    checkupdates::*, devupdate::*, disconnect::*, help::*, msg::*, ping::*, reconnect::*, run::*,
+    screenshot::*, stat::*, version::*,
 };
 use crate::client::Client;
 
@@ -37,19 +36,20 @@ pub struct CommandsManager {
     pub commands: Vec<Box<dyn Command>>,
 }
 
-pub fn scess<S>(message: S) -> String
+pub fn ok<S>(message: S) -> String
 where
-S: ToString + fmt::Display,
+    S: ToString + fmt::Display,
 {
-    format!("{{0}}{}",message)
+    format!("{{0}}{}", message)
 }
-// Be used in future
-// pub fn error<S>(message: S) -> String
-// where
-// S: ToString + fmt::Display,
-// {
-//     format!("{{1}}{}",message)
-// }
+
+#[allow(dead_code)]
+pub fn error<S>(message: S) -> String
+where
+    S: ToString + fmt::Display,
+{
+    format!("{{1}}{}", message)
+}
 
 impl CommandsManager {
     pub fn new() -> Self {

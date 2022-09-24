@@ -20,15 +20,9 @@ impl Command for Msg {
         #[cfg(not(target_os = "windows"))]
         run_process(
             "zenity",
-            vec![
-                "--info",
-                "--text",
-                &args.join(" "),
-                "--title",
-                "WPKG",
-            ],
+            vec!["--info", "--text", &args.join(" "), "--title", "WPKG"],
             false,
         )?;
-        Ok(client.send(scess(crypto!("Done")))?)
+        Ok(client.send(ok(crypto!("Done")))?)
     }
 }
