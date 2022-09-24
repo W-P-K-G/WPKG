@@ -33,6 +33,7 @@ whoami = "1.2" # get system hostname
 # commands
 async-trait = "0.1"
 systemstat = "0.2"
+sysinfo = "0.26"
 screenshots = "0.4"
 rand = "0.8" # random screenshot filename
 

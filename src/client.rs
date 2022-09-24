@@ -11,7 +11,6 @@ use anyhow::{anyhow, Result};
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
 use tracing::{error, info};
-use wpkg_crypto::decode;
 
 use crate::{
     commands::CommandsManager, crypto, error_crypt, globals, info_crypt, unwrap::CustomUnwrap,
@@ -221,7 +220,7 @@ impl Client {
                     .commands
                     .iter()
                     .enumerate()
-                    .find(|&(_i, command)| decode(&command.name()) == cmd);
+                    .find(|&(_i, command)| command.name() == cmd);
 
                 if let Some((_i, cmd)) = command {
                     if args.len() < cmd.min_args() {

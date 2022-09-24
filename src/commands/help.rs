@@ -1,5 +1,3 @@
-use wpkg_crypto::decode;
-
 use super::prelude::*;
 use crate::client::COMMANDS;
 
@@ -23,11 +21,7 @@ impl Command for Help {
         let mut msg = Vec::new();
 
         for command in COMMANDS.commands.iter() {
-            msg.push(format!(
-                "`{}` {}",
-                decode(&command.name()),
-                decode(&command.help())
-            ));
+            msg.push(format!("`{}` {}", command.name(), command.help()));
         }
 
         client.send(msg.join("\n"))
