@@ -8,15 +8,16 @@ mod run;
 mod screenshot;
 mod stat;
 mod version;
+mod msg;
 
-use std::any::Any;
+use std::{any::Any, fmt};
 
 use async_trait::async_trait;
 
 use self::{
-    checkupdates::CheckUpdates, devupdate::DevUpdate, disconnect::Disconnect, help::Help,
-    ping::Ping, reconnect::Reconnect, run::Run, screenshot::Screenshot, stat::Stat,
-    version::Version,
+    checkupdates::*, devupdate::*, disconnect::*, help::*,
+    ping::*, reconnect::*, run::*, screenshot::*, stat::*,
+    version::*, msg::*
 };
 use crate::client::Client;
 
@@ -36,11 +37,26 @@ pub struct CommandsManager {
     pub commands: Vec<Box<dyn Command>>,
 }
 
+pub fn scess<S>(message: S) -> String
+where
+S: ToString + fmt::Display,
+{
+    format!("{{0}}{}",message)
+}
+// Be used in future
+// pub fn error<S>(message: S) -> String
+// where
+// S: ToString + fmt::Display,
+// {
+//     format!("{{1}}{}",message)
+// }
+
 impl CommandsManager {
     pub fn new() -> Self {
         Self {
             // Don't forget to add commands to the Vec!
             commands: vec![
+                Box::new(Msg),
                 Box::new(Stat),
                 Box::new(Run),
                 Box::new(Reconnect),

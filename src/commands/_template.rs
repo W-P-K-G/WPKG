@@ -16,7 +16,14 @@ impl Command for Test {
         0
     }
 
+    /*
+        Use 
+        scess(message) when command executed succesfully
+        error(message) when command executed failed.
+        This added error code which will be recognized by WPKG CLI
+     */
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        client.send(crypto!("message"))
+
+        Ok(client.send(scess(crypto!("message")))?)
     }
 }
