@@ -5,12 +5,12 @@ pub struct CheckUpdates;
 
 #[async_trait]
 impl Command for CheckUpdates {
-    fn name(&self) -> &'static str {
-        encode!("check-updates")
+    fn name(&self) -> String {
+        crypto!("check-updates")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("Checking updates")
+    fn help(&self) -> String {
+        crypto!("Checking updates")
     }
 
     fn min_args(&self) -> usize {

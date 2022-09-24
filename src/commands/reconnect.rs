@@ -4,12 +4,12 @@ pub struct Reconnect;
 
 #[async_trait]
 impl Command for Reconnect {
-    fn name(&self) -> &'static str {
-        encode!("reconnect")
+    fn name(&self) -> String {
+        crypto!("reconnect")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("<ip> <port> - Reconnecting to another ServerD")
+    fn help(&self) -> String {
+        crypto!("<ip> <port> - Reconnecting to another ServerD")
     }
 
     fn min_args(&self) -> usize {
@@ -46,6 +46,7 @@ impl Command for Reconnect {
                 client.send(&msg)?;
             },
         }
+
         Ok(())
     }
 }

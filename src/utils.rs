@@ -28,7 +28,6 @@ pub async fn download_string(url: &str) -> reqwest::Result<String> {
     reqwest::get(url).await?.text().await
 }
 
-
 pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     let resp = reqwest::get(url).await?;
 
@@ -39,7 +38,6 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
 
     Ok(())
 }
-
 
 pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
     let mut full_command: Vec<String> = vec![];

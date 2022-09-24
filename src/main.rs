@@ -23,7 +23,6 @@ pub const TCP_BACKUP_IP: &str = encode!("136.243.156.104");
 /// Server port backup if api isn't available
 pub const TCP_BACKUP_PORT: u32 = 3217;
 
-
 #[tokio::main]
 async fn main() {
     // init logger
@@ -130,7 +129,7 @@ async fn main() {
         }
     }
 
-    tokio::spawn(async move {
+    tokio::spawn(async {
         loop {
             thread::sleep(time::Duration::from_secs(10 * 60)); // check every 10 minutes
 

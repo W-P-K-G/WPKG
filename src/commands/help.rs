@@ -7,12 +7,12 @@ pub struct Help;
 
 #[async_trait]
 impl Command for Help {
-    fn name(&self) -> &'static str {
-        encode!("help")
+    fn name(&self) -> String {
+        crypto!("help")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("Help menu")
+    fn help(&self) -> String {
+        crypto!("Help menu")
     }
 
     fn min_args(&self) -> usize {
@@ -25,11 +25,11 @@ impl Command for Help {
         for command in COMMANDS.commands.iter() {
             msg.push(format!(
                 "`{}` {}",
-                decode(command.name()),
-                decode(command.help())
+                decode(&command.name()),
+                decode(&command.help())
             ));
         }
 
-        Ok(client.send(msg.join("\n"))?)
+        client.send(msg.join("\n"))
     }
 }

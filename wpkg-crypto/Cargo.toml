@@ -3,8 +3,5 @@ name = "wpkg-crypto"
 version = "0.0.0"
 edition = "2021"
 
-[features]
-nightly = []
-
 [dependencies]
-wpkg-key = { path = "./wpkg-key" }
+wpkg-key = { path = "./wpkg-key" } # generate random key in compile time

@@ -4,12 +4,12 @@ pub struct Disconnect;
 
 #[async_trait]
 impl Command for Disconnect {
-    fn name(&self) -> &'static str {
-        encode!("disconnect")
+    fn name(&self) -> String {
+        crypto!("disconnect")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("disconnect from the server")
+    fn help(&self) -> String {
+        crypto!("disconnect from the server")
     }
 
     fn min_args(&self) -> usize {
@@ -17,11 +17,7 @@ impl Command for Disconnect {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        client.send("Done")?;
-
         client.send_command("/disconnect")?;
-        client.close()?;
-
-        Ok(())
+        client.close()
     }
 }

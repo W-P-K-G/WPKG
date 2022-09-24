@@ -54,12 +54,8 @@ mod tests {
 
     #[test]
     fn test() {
-        for i in 1..u16::MAX {
-            use std::time::Instant;
-
-            let before = Instant::now();
-            check(i as usize);
-            println!("Elapsed time: {:.2?}", before.elapsed());
+        for i in 100..u16::MAX {
+            check(i.into());
         }
     }
 }

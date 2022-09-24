@@ -4,12 +4,12 @@ pub struct Test;
 
 #[async_trait]
 impl Command for Test {
-    fn name(&self) -> &'static str {
-        encode!("cmd")
+    fn name(&self) -> String {
+        crypto!("cmd")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("Help")
+    fn help(&self) -> String {
+        crypto!("Help")
     }
 
     fn min_args(&self) -> usize {
@@ -17,6 +17,6 @@ impl Command for Test {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send(crypto!("message"))?)
+        client.send(crypto!("message"))
     }
 }

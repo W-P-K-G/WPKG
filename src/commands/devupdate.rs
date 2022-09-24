@@ -5,12 +5,12 @@ pub struct DevUpdate;
 
 #[async_trait]
 impl Command for DevUpdate {
-    fn name(&self) -> &'static str {
-        encode!("dev-update")
+    fn name(&self) -> String {
+        crypto!("dev-update")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("<url> - Downloading and installing custom version")
+    fn help(&self) -> String {
+        crypto!("<url> - Downloading and installing custom version")
     }
 
     fn min_args(&self) -> usize {
@@ -25,6 +25,7 @@ impl Command for DevUpdate {
         if let Err(err) = updater::update(args[0]).await {
             error!("{}: {}", crypto!("Updating failed"), err)
         }
+
         Ok(())
     }
 }

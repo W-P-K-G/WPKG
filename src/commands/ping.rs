@@ -4,12 +4,12 @@ pub struct Ping;
 
 #[async_trait]
 impl Command for Ping {
-    fn name(&self) -> &'static str {
-        encode!("ping")
+    fn name(&self) -> String {
+        crypto!("ping")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("command for pinger")
+    fn help(&self) -> String {
+        crypto!("command for pinger")
     }
 
     fn min_args(&self) -> usize {
@@ -17,6 +17,6 @@ impl Command for Ping {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send(crypto!("ping-received"))?)
+        client.send(crypto!("ping-received"))
     }
 }

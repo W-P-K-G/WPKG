@@ -22,9 +22,9 @@ use crate::client::Client;
 
 #[async_trait]
 pub trait Command: Any + Send + Sync {
-    fn name(&self) -> &'static str;
+    fn name(&self) -> String;
 
-    fn help(&self) -> &'static str;
+    fn help(&self) -> String;
 
     fn min_args(&self) -> usize;
 
@@ -61,7 +61,6 @@ mod prelude {
 
     pub use super::*;
     pub use crate::client::Client;
-    pub(crate) use crate::encode;
     pub extern crate anyhow;
 
     pub use tracing::*;
