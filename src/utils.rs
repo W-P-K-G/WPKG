@@ -203,10 +203,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
         ],
     )?;
 
-    tokio::spawn(async {
-        thread::sleep(Duration::from_secs(30));
-        fs::remove_file(path).unwrap();
-    });
+    tokio::spawn(async { fs::remove_file(path).unwrap() });
 
     Ok(String::from_utf8(out.stdout)?.replace('\n', ""))
 }

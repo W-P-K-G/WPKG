@@ -23,6 +23,7 @@ impl Command for Msg {
             vec!["--info", "--text", &args.join(" "), "--title", "WPKG"],
             false,
         )?;
-        Ok(client.send(ok(crypto!("Done")))?)
+
+        client.send(ok(crypto!("Done")))
     }
 }
