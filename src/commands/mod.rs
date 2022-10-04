@@ -40,7 +40,7 @@ pub fn ok<S>(message: S) -> String
 where
     S: ToString + fmt::Display,
 {
-    format!("{{0}}{}", message)
+    format!("[0]{}", message)
 }
 
 #[allow(dead_code)]
@@ -48,7 +48,7 @@ pub fn error<S>(message: S) -> String
 where
     S: ToString + fmt::Display,
 {
-    format!("{{1}}{}", message)
+    format!("[1]{}", message)
 }
 
 impl CommandsManager {

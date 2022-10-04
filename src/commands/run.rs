@@ -20,6 +20,6 @@ impl Command for Run {
     async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
         utils::run_process(args[0], args[1..args.len()].to_vec(), false)?;
 
-        client.send("Done")
+        client.send(ok("Done"))
     }
 }
