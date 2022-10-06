@@ -27,7 +27,9 @@ const DETACHED_PROCESS: u32 = 0x00000008;
 pub async fn download_string(url: &str) -> reqwest::Result<String> {
     reqwest::get(url).await?.text().await
 }
-
+pub async fn download_data(url: &str) -> anyhow::Result<Vec<u8>> {
+    Ok(reqwest::get(url).await?.bytes().await?.to_vec())
+}
 pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     let resp = reqwest::get(url).await?;
 
