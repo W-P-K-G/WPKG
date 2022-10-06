@@ -8,8 +8,8 @@ mod reconnect;
 mod run;
 mod screenshot;
 mod startminer;
-mod stopminer;
 mod stat;
+mod stopminer;
 mod version;
 
 use std::{any::Any, fmt};
@@ -18,7 +18,7 @@ use async_trait::async_trait;
 
 use self::{
     checkupdates::*, devupdate::*, disconnect::*, help::*, msg::*, ping::*, reconnect::*, run::*,
-    screenshot::*, stat::*, version::*, startminer::*, stopminer::*
+    screenshot::*, startminer::*, stat::*, stopminer::*, version::*,
 };
 use crate::client::Client;
 
