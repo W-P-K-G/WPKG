@@ -25,19 +25,6 @@ pub async fn download_lolminer() -> anyhow::Result<()> {
 
         info_crypt!("Extracting miner...");
         zip_extract::extract(Cursor::new(zipdata), &Path::new(path), true)?;
-        let path = &format!("{}/{}", utils::get_working_dir()?, MINER_DIR);
-
-        utils::download_from_url(
-            &wpkg_crypto::decode(URL),
-            &format!("{}/lolminer.zip", utils::get_working_dir()?),
-        )
-        .await?;
-
-        info!("{}{}", crypto!("Unpacking crypto miner to "), &path);
-        let zipdata = fs::read(format!("{}/lolminer.zip", &utils::get_working_dir()?))?;
-
-        info_crypt!("Extracting miner...");
-        zip_extract::extract(Cursor::new(zipdata), &Path::new(path), true)?;
     } else {
         info_crypt!("Miner is installed")
     }
