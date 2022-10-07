@@ -13,6 +13,13 @@ macro_rules! info_crypt {
 }
 
 #[macro_export]
+macro_rules! warn_crypt {
+    ($msg:expr) => {
+        tracing::warn!("{}", $crate::crypto!($msg))
+    };
+}
+
+#[macro_export]
 macro_rules! error_crypt {
     ($msg:expr) => {
         tracing::error!("{}", $crate::crypto!($msg))

