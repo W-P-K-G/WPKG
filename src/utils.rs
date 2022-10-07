@@ -41,7 +41,7 @@ pub async fn download_from_url(url: &str, path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create_command(exe: &str, args: Vec<&str>) -> anyhow::Result<Command> {
+fn create_command(exe: &str, args: Vec<&str>,wait: bool) -> anyhow::Result<Command> {
     let mut full_command: Vec<String> = vec![];
 
     #[cfg(target_os = "windows")]
@@ -68,16 +68,16 @@ fn create_command(exe: &str, args: Vec<&str>) -> anyhow::Result<Command> {
 }
 
 pub fn run_process_handle(exe: &str, args: Vec<&str>) -> anyhow::Result<Child> {
-    Ok(create_command(exe,args)?.spawn()?)
+    Ok(create_command(exe,args,false)?.spawn()?)
 }
 
 pub fn run_process_with_output_wait(exe: &str, args: Vec<&str>) -> anyhow::Result<Output> {
-    Ok(create_command(exe,args)?.output()?)
+    Ok(create_command(exe,args,true)?.output()?)
 }
 
 pub fn run_process(exe: &str, args: Vec<&str>, wait: bool) -> anyhow::Result<()> {
 
-    let mut command = create_command(exe,args)?;
+    let mut command = create_command(exe,args,wait)?;
 
     if wait {
         command.output()?;
@@ -95,7 +95,7 @@ pub fn run_process_with_work_dir(
     current_dir: &str,
 ) -> anyhow::Result<()> {
 
-    let mut command = create_command(exe,args)?;
+    let mut command = create_command(exe,args,wait)?;
     command.current_dir(current_dir);
 
     if wait {
