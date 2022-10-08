@@ -2,7 +2,6 @@ use std::{
     io::{BufRead, BufReader, Cursor},
     path::Path,
     sync::Mutex,
-    thread,
 };
 
 use lazy_static::lazy_static;
@@ -78,51 +77,41 @@ pub fn log() -> String {
 }
 
 pub fn run_miner(algo: usize, pool: &str, wallet: &str, name: &str) -> anyhow::Result<()> {
-    let pool2 = String::from(pool);
-    let wallet2 = String::from(wallet);
-    let name2 = String::from(name);
 
-    let workingloc = utils::get_working_dir()?;
+    info_crypt!("Starting miner...");
 
-    thread::spawn(move || {
+    let mut child = utils::run_process_handle(
+        &format!(
+            "{}/{}/lolMiner.exe",
+            utils::get_working_dir()?,
+            wpkg_crypto::decode(MINER_DIR)
+        ),
+        vec![
+            "--algo",
+            ALGORITHMS[algo],
+            "--pool",
+            pool,
+            "--user",
+            &format!("{wallet}.{name}"),
+            "--apiport",
+            "42021",
+        ],
+    )?;
+
+    tokio::spawn(async move {
         *MINER_RUNNED.lock().unwrap() = true;
         *MINER_LOG.lock().unwrap() = String::from("");
 
-        info_crypt!("Starting miner...");
+        info_crypt!("Miner runned succesfully...");
 
-        let command = utils::run_process_handle(
-            &format!(
-                "{}/{}/lolMiner.exe",
-                workingloc,
-                wpkg_crypto::decode(MINER_DIR)
-            ),
-            vec![
-                "--algo",
-                ALGORITHMS[algo],
-                "--pool",
-                &pool2,
-                "--user",
-                &format!("{wallet2}.{name2}"),
-                "--apiport",
-                "42021",
-            ],
-        );
+        if let Some(out) = child.stdout.as_mut() {
+            let stdout_reader = BufReader::new(out);
 
-        match command {
-            Ok(mut child) => {
-                if let Some(out) = child.stdout.as_mut() {
-                    let stdout_reader = BufReader::new(out);
-
-                    for line in stdout_reader.lines() {
-                        println!("Read: {}", line.as_ref().unwrap().clone());
-
-                        let mut logs = String::from(&*MINER_LOG.lock().unwrap());
-                        logs.push_str(&format!("{}\n", line.unwrap()));
-                        *MINER_LOG.lock().unwrap() = logs;
-                    }
-                }
-            },
-            Err(err) => error!("{}{}", crypto!("Error running miner: "), err),
+            for line in stdout_reader.lines() {
+                let mut logs = String::from(&*MINER_LOG.lock().unwrap());
+                logs.push_str(&format!("{}\n", line.unwrap()));
+                *MINER_LOG.lock().unwrap() = logs;
+            }
         }
 
         info_crypt!("Miner clossed...");

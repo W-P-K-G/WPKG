@@ -243,7 +243,7 @@ impl Client {
                     crypto!("Unexpected error in message handler"),
                     err
                 );
-                self.send(crypto!("[1]Unexpected error"))?;
+                self.send(format!("{}{}",crypto!("[1]"),err))?;
             }
         }
 
