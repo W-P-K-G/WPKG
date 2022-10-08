@@ -99,7 +99,7 @@ async fn main() {
                 );
 
                 if !Path::new(&exe_target).exists() {
-                    fs::copy(exe_path, exe_target)?;
+                    fs::copy(&exe_path, &exe_target)?;
                 }
 
                 // check if process is running
