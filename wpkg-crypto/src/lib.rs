@@ -10,7 +10,7 @@ pub fn _encode(key: usize, value: &str) -> String {
     for byte in value_bytes {
         let byte = *byte as usize;
 
-        let byte_out = byte * key;
+        let byte_out = (byte * 3) * key;
 
         output.push(byte_out.to_string());
     }
@@ -30,9 +30,9 @@ pub fn _decode_key(key: usize, value: &str) -> String {
     for byte in bytes {
         let byte: usize = byte.parse().unwrap();
 
-        let out = byte / key;
+        let byte_out = (byte / key) / 3;
 
-        output.push(out as u8);
+        output.push(byte_out as u8);
     }
 
     String::from_utf8(output).unwrap()
