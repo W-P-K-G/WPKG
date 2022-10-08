@@ -1,5 +1,5 @@
 // Remove console window in Windows OS
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 mod addresses;
 mod client;
