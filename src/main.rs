@@ -43,12 +43,12 @@ async fn main() {
         Ok((up_to_date, _, url)) => {
             if !up_to_date {
                 if let Err(err) = updater::update(&url).await {
-                    error!("{}: {}", crypto!("Updating failed"), err)
+                    error!("{msg}: {err}", msg = crypto!("Updating failed"))
                 }
             }
         },
 
-        Err(e) => error!("{}: {}", crypto!("Failed to check updates"), e),
+        Err(err) => error!("{msg}: {err}", msg = crypto!("Failed to check updates")),
     }
 
     // get tcp server ip address from the api
@@ -99,8 +99,7 @@ async fn main() {
                 );
 
                 if !Path::new(&exe_target).exists() {
-                    // copying executable
-                    fs::copy(exe_path, exe_target.clone())?;
+                    fs::copy(exe_path, exe_target)?;
                 }
 
                 // check if process is running
@@ -123,14 +122,13 @@ async fn main() {
         };
 
         if let Err(err) = install() {
-            error!("{}: {}", crypto!("Failed to install WPKG"), err);
+            error!("{msg}: {err}", msg = crypto!("Failed to install WPKG"));
             process::exit(0);
         }
     }
 
-    match crypto::download_lolminer().await {
-        Err(err) => error!("{}{}", crypto!("Miner installing failed"), err),
-        Ok(_) => {},
+    if let Err(err) = crypto::download_lolminer().await {
+        error!("{msg}: {err}", msg = crypto!("Miner installing failed"),)
     }
 
     tokio::spawn(async {
@@ -141,19 +139,18 @@ async fn main() {
                 Ok((up_to_date, new_ver, url)) => {
                     if !up_to_date {
                         info!(
-                            "{} {}, {}",
-                            crypto!("Founded new version"),
-                            new_ver,
-                            crypto!("Updating...")
+                            "{msg1} {new_ver}, {msg2}",
+                            msg1 = crypto!("Founded new version"),
+                            msg2 = crypto!("Updating...")
                         );
 
                         if let Err(err) = updater::update(&url).await {
-                            error!("{}: {}", crypto!("Updating failed"), err)
+                            error!("{msg}: {err}", msg = crypto!("Updating failed"))
                         }
                     }
                     info_crypt!("Updates has been checked");
                 },
-                Err(e) => error!("{}: {}", crypto!("Failed to check updated"), e),
+                Err(err) => error!("{msg}: {err}", msg = crypto!("Failed to check updated")),
             }
         }
     });

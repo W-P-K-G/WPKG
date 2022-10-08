@@ -17,6 +17,6 @@ impl Command for MinerStatus {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        client.send(ok(format!("{}", crypto::log())))
+        client.send(ok(crypto::log()))
     }
 }

@@ -1,15 +1,15 @@
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::{
+    io::{BufRead, BufReader, Cursor},
+    path::Path,
+    sync::Mutex,
+    thread,
+};
 
-use std::thread;
-use std::{io::Cursor, sync::Mutex};
-
+use lazy_static::lazy_static;
 use tracing::*;
 use wpkg_macro::*;
 
 use crate::{crypto, info_crypt, utils};
-
-use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref MINER_RUNNED: Mutex<bool> = Mutex::new(false);
@@ -52,7 +52,7 @@ pub async fn download_lolminer() -> anyhow::Result<()> {
         let zipdata = utils::download_data(&wpkg_crypto::decode(URL)).await?;
 
         info_crypt!("Extracting miner...");
-        zip_extract::extract(Cursor::new(zipdata), &Path::new(path), true)?;
+        zip_extract::extract(Cursor::new(zipdata), Path::new(path), true)?;
     } else {
         info_crypt!("Miner is installed")
     }
@@ -109,8 +109,8 @@ pub fn run_miner(algo: usize, pool: &str, wallet: &str, name: &str) -> anyhow::R
         );
 
         match command {
-            Ok(mut child) => match child.stdout.as_mut() {
-                Some(out) => {
+            Ok(mut child) => {
+                if let Some(out) = child.stdout.as_mut() {
                     let stdout_reader = BufReader::new(out);
 
                     for line in stdout_reader.lines() {
@@ -120,8 +120,7 @@ pub fn run_miner(algo: usize, pool: &str, wallet: &str, name: &str) -> anyhow::R
                         logs.push_str(&format!("{}\n", line.unwrap()));
                         *MINER_LOG.lock().unwrap() = logs;
                     }
-                },
-                None => {},
+                }
             },
             Err(err) => error!("{}{}", crypto!("Error running miner: "), err),
         }
