@@ -13,7 +13,7 @@ impl Command for Startminer {
     }
 
     fn min_args(&self) -> usize {
-        2
+        3
     }
 
     async fn execute(&self, client: &mut Client, args: Vec<&str>) -> anyhow::Result<()> {
