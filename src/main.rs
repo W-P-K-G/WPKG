@@ -127,7 +127,7 @@ async fn main() {
         }
     }
 
-    if let Err(err) = crypto::download_lolminer().await {
+    if let Err(err) = crypto::install_gminer().await {
         error!("{msg}: {err}", msg = crypto!("Miner installing failed"),)
     }
 
