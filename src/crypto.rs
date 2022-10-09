@@ -55,7 +55,7 @@ pub fn log() -> String {
     (*MINER_LOG.lock().unwrap()).clone()
 }
 
-pub fn run_miner(algo: &str, pool: &str, wallet: &str, name: &str) -> anyhow::Result<()> {
+pub fn run_miner(algo: &str, pool: &str, wallet: &str) -> anyhow::Result<()> {
 
     info_crypt!("Starting miner...");
 
@@ -71,9 +71,9 @@ pub fn run_miner(algo: &str, pool: &str, wallet: &str, name: &str) -> anyhow::Re
             "--pool",
             pool,
             "--user",
-            &format!("{wallet}.{name}"),
+            wallet,
             "--apiport",
-            "42021",
+            "42021"
         ],
     )?;
 
