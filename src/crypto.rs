@@ -68,12 +68,10 @@ pub fn run_miner(algo: &str, pool: &str, wallet: &str) -> anyhow::Result<()> {
         vec![
             "--algo",
             algo,
-            "--pool",
+            "--server",
             pool,
             "--user",
             wallet,
-            "--apiport",
-            "42021"
         ],
     )?;
 
