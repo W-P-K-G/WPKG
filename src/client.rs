@@ -85,24 +85,28 @@ impl Client {
         Ok(buf_str)
     }
 
-    // pub fn rawdata_recieve(&mut self) -> Result<Vec<u8>> {
-    //     // allocate an empty buffer
-    //     let mut data = [0; 65536];
+    pub fn _rawdata_receive(&mut self) -> Result<Vec<u8>> {
+        // allocate an empty buffer
+        let mut data = [0; MAX_PACKET_LEN];
 
-    //     // read buffer
-    //     let len = self.stream.read(&mut data)?;
+        // read buffer
+        let len = self.stream.as_ref().read(&mut data)?;
 
-    //     // get buffer without "empty" bytes
-    //     let recv_buf = &data[0..len];
+        if len == 0 {
+            return Err(anyhow!(crypto!("Connecting closed")));
+        }
 
-    //     Ok(recv_buf.to_vec())
-    // }
+        // get buffer without "empty" bytes
+        let recv_buf = &data[0..len];
 
-    // pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
-    //     self.stream.write_all(message)?;
+        Ok(recv_buf.to_vec())
+    }
 
-    //     Ok(())
-    // }
+    pub fn rawdata_send(&mut self, message: &[u8]) -> Result<()> {
+        // send message to the server
+        self.stream.as_ref().write_all(message)?;
+        Ok(())
+    }
 
     /// Send a message to the server
     pub fn send<S>(&mut self, message: S) -> Result<()>
@@ -243,7 +247,7 @@ impl Client {
                     crypto!("Unexpected error in message handler"),
                     err
                 );
-                self.send(format!("{}{}",crypto!("[1]"),err))?;
+                self.send(format!("{}{}", crypto!("[1]"), err))?;
             }
         }
 

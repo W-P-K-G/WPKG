@@ -136,7 +136,7 @@ pub fn get_working_dir() -> anyhow::Result<String> {
     }
 }
 
-pub fn screenshot() -> anyhow::Result<String> {
+pub fn screenshot_buffer() -> anyhow::Result<Vec<u8>> {
     info_crypt!("Creating screenshot...");
 
     let screens = Screen::all().ok_or_else(|| anyhow!(crypto!("Failed to takie screenshot")))?;
@@ -150,7 +150,11 @@ pub fn screenshot() -> anyhow::Result<String> {
         .context(crypto!("Could not find screens"))?
         .capture()
         .context(crypto!("Empty image"))?;
-    let buffer = image.buffer();
+    Ok(image.buffer().to_vec())
+}
+
+pub fn screenshot() -> anyhow::Result<String> {
+    let buffer = screenshot_buffer()?;
 
     // Save the image.
     let mut rng = rand::thread_rng();
