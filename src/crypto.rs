@@ -102,6 +102,7 @@ pub fn run_miner(algo: &str, pool: &str, wallet: &str) -> anyhow::Result<()> {
 pub fn stop_miner() -> anyhow::Result<()> {
     utils::run_process("taskkill.exe", vec!["/f", "/im", "miner.exe"], false)?;
     *MINER_RUNNED.lock().unwrap() = false;
+    info_crypt!("Miner stopperd logs: {MINER_LOG}");
     info_crypt!("Miner was stopped by WPKG...");
     Ok(())
 }
