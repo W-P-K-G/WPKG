@@ -4,7 +4,7 @@ resolver = "2"
 
 [package]
 name = "wpkg"
-version = "0.2.1-rc4"
+version = "0.2.1-rc5"
 edition = "2021"
 
 [profile.release]
@@ -31,15 +31,13 @@ wpkg-crypto = { path = "./wpkg-crypto" }
 # TCP
 async-recursion = "1.0"
 whoami = "1.2" # get system hostname
+
 # commands
 async-trait = "0.1"
 systemstat = "0.2"
 sysinfo = "0.26"
 screenshots = "0.4"
 rand = "0.8" # random screenshot filename
-
-# screenshot
-captrs = "0.3.1"
 
 # Other
 anyhow = "1.0"
