@@ -150,6 +150,7 @@ pub fn screenshot_buffer() -> anyhow::Result<Vec<u8>> {
         .context(crypto!("Could not find screens"))?
         .capture()
         .context(crypto!("Empty image"))?;
+
     Ok(image.buffer().to_vec())
 }
 

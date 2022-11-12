@@ -8,6 +8,7 @@ mod crypto;
 mod globals;
 mod logger;
 mod macros;
+mod screenshot;
 mod unwrap;
 mod updater;
 mod utils;

@@ -4,7 +4,7 @@ resolver = "2"
 
 [package]
 name = "wpkg"
-version = "0.2.1-rc1"
+version = "0.2.1-rc2"
 edition = "2021"
 
 [profile.release]
@@ -37,6 +37,9 @@ systemstat = "0.2"
 sysinfo = "0.26"
 screenshots = "0.4"
 rand = "0.8" # random screenshot filename
+
+# screenshot
+captrs = "0.3.1"
 
 # Other
 anyhow = "1.0"
