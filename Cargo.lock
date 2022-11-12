@@ -1989,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "wpkg"
-version = "0.2.1-rc1"
+version = "0.2.1-rc3"
 dependencies = [
  "anyhow",
  "async-recursion",

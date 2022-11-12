@@ -1,4 +1,5 @@
 use crate::info_crypt;
+use anyhow::anyhow;
 use captrs::*;
 
 pub struct Screenshot {
@@ -10,11 +11,17 @@ pub struct Screenshot {
 pub fn screenshot() -> anyhow::Result<Screenshot> {
     info_crypt!("Creating screenshot...");
 
-    let mut capturer = Capturer::new(0).unwrap();
+    let mut capturer = match Capturer::new(0) {
+        Ok(capt) => capt,
+        Err(err) => return Err(anyhow!(err)),
+    };
 
     let (w, h) = capturer.geometry();
 
-    let ps = capturer.capture_frame().unwrap();
+    let ps = match capturer.capture_frame() {
+        Ok(buf) => buf,
+        Err(err) => return Err(anyhow!("Capture frame error: {:?}", err)),
+    };
 
     let mut img: Vec<u8> = Vec::with_capacity((w * h * 3) as usize);
 
