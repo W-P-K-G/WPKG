@@ -18,6 +18,7 @@ impl Command for Cryptolog {
     }
 
     async fn execute(&self, client: &mut Client, _args: Vec<&str>) -> anyhow::Result<()> {
-        client.send(crypto::getlogs())
+        client.send(crypto::getlogs()?)?;
+        Ok(())
     }
 }
